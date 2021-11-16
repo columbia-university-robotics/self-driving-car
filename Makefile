@@ -7,4 +7,5 @@ run: all
 	./script/run
 
 clean:
-	rm -rf catkin_ws/build catkin_ws/devel catkin_ws/src/CMakeLists.txt 
+	rm -rf catkin_ws/build catkin_ws/devel catkin_ws/src/CMakeLists.txt; \
+	docker rm ros-container || true

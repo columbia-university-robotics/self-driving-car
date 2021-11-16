@@ -1,0 +1,4 @@
+#!/bin/bash
+
+CONTAINER_NAME=ros-container
+PROJECT_ROOT="$(cd ..; pwd)"

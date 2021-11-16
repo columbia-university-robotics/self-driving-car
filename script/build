@@ -1,9 +1,10 @@
 #!/bin/bash
 
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 set -e
 
-CONTAINER_NAME=ros-container
-PROJECT_ROOT="$(cd "$(dirname "$0")"; cd ..; pwd)"
+source ./config
 
 echo "Building Docker image..."
 docker build -t ${CONTAINER_NAME} ${PROJECT_ROOT}
