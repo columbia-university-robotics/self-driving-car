@@ -1,7 +1,9 @@
+.PHONY: all run clean
+
 all:
 	./script/build
 
-run:
+run: all
 	./script/run
 
 clean:
