@@ -7,6 +7,10 @@ RUN echo 'Etc/UTC' > /etc/timezone && \
     apt-get install -q -y --no-install-recommends tzdata && \
     rm -rf /var/lib/apt/lists/*
 
+# Enable restart without interaction
+RUN apt-get install debconf; \
+    echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections
+
 # install packages
 RUN apt-get update && apt-get install -q -y --no-install-recommends \
     dirmngr \
@@ -52,3 +56,12 @@ RUN rosdep init && \
 RUN apt-get update && apt-get install -y -q --no-install-recommends \
     ros-melodic-ros-base=1.4.1-0* \
     && rm -rf /var/lib/apt/lists/*
+
+# Fix permissions for ros_entrypoint script
+RUN chmod +x /ros_entrypoint.sh
+
+# install ros tutorials packages
+RUN apt-get update && apt-get install -y \
+    tmux \
+    ros-melodic-serial \
+    && echo "source /catkin_ws/devel/setup.bash" >> /root/.bashrc \
