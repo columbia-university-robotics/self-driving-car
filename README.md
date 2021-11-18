@@ -1,23 +1,25 @@
 # ROS Docker Simple
 
-A simple template project for [dockerizing](https://www.docker.com/) your [ROS](http://www.ros.org/) code. Have your ROS project set up and running in 3 minutes by putting your catkin workspace in `catkin_ws` and running:
+Once per system, you must run:i
 
 ```
 sudo apt-get install docker
-/script/build
-/script/run
+make ros-jetson-image
 ```
 
-And that's it!
+This may take up to half an hour, and will build the base image for running ros on nvidia.
+
+To run the container, put your catkin workspace in `catkin_ws` and run:
+
+```
+make build
+make run
+```
+
+If you haven't changed the Dockerfile, you can omit make build.
 
 ## FAQ
 
-### How can I use a different version of ROS?
-
-This works with [any supported version of ROS](https://hub.docker.com/_/ros/), just edit the top line of the Dockerfile. For example, if you want ROS Kinetic:
-
-```
-FROM ros:kinetic-ros-base
 ```
 
 ### Can I use [my favourite IDE/editor] with this?
@@ -39,7 +41,7 @@ I recommend [tmux](https://robots.thoughtbot.com/a-tmux-crash-course) as an easy
 However, if you really want multiple terminal windows instead, you can open a new terminal window on your host computer and run:
 
 ```
-docker exec -it ros-docker-simple /bin/bash
+docker exec -it ros-container /bin/bash
 ```
 
 ### I want to run a different command on container startup!
