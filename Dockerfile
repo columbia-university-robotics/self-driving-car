@@ -1,63 +1,60 @@
 FROM nvcr.io/nvidia/l4t-base:r32.3.1
 
-# add new sudo user
-ENV USERNAME melodic
-ENV HOME /home/$USERNAME
-RUN useradd -m $USERNAME && \
-    echo "$USERNAME:$USERNAME" | chpasswd && \
-    usermod --shell /bin/bash $USERNAME && \
-    usermod -aG sudo $USERNAME && \
-    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
-    chmod 0440 /etc/sudoers.d/$USERNAME && \
-    # Replace 1000 with your user/group id
-    usermod  --uid 1000 $USERNAME && \
-    groupmod --gid 1000 $USERNAME && \
-    gpasswd -a $USERNAME video
-
-# install package
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        sudo \
-        build-essential \
-        git \
-        less \
-        emacs \
-        tmux \
-        bash-completion \
-        command-not-found \
-        software-properties-common \
-        xdg-user-dirs \
-        xsel \
-        dirmngr \
-        gpg-agent \
-        mesa-utils \
-        libglu1-mesa-dev \
-        libgles2-mesa-dev \
-        freeglut3-dev \
-        && \
-    apt-get clean && \
+# setup timezone
+RUN echo 'Etc/UTC' > /etc/timezone && \
+    ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    apt-get update && \
+    apt-get install -q -y --no-install-recommends tzdata && \
     rm -rf /var/lib/apt/lists/*
 
-# ROS Melodic
-RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        ros-melodic-desktop-full \
-        python-rosdep \
-        python-rosinstall \
-        python-rosinstall-generator \
-        python-wstool \
-        build-essential \
-        && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-RUN rosdep init
+# install packages
+RUN apt-get update && apt-get install -q -y --no-install-recommends \
+    dirmngr \
+    gnupg2 \
+    && rm -rf /var/lib/apt/lists/*
 
-USER $USERNAME
-WORKDIR /home/$USERNAME
-RUN rosdep update
-SHELL ["/bin/bash", "-c"]
-RUN echo "export PATH=/usr/local/cuda/bin:$PATH" >> ~/.bashrc && \
-    echo "export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH" >> ~/.bashrc && \
-    echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc && \
-    source ~/.bashrc
+# setup sources.list
+RUN echo "deb http://packages.ros.org/ros/ubuntu bionic main" > /etc/apt/sources.list.d/ros1-latest.list
+
+# setup keys
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+# setup environment
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
+ENV ROS_DISTRO melodic
+
+# install ros packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-melodic-ros-core=1.4.1-0* \
+    && rm -rf /var/lib/apt/lists/*
+
+# setup entrypoint
+COPY ./ros_entrypoint.sh /
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]
+
+# install bootstrap tools
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    build-essential \
+    python-rosdep \
+    python-rosinstall \
+    python-vcstools \
+    && rm -rf /var/lib/apt/lists/*
+
+# bootstrap rosdep
+RUN rosdep init && \
+  rosdep update --rosdistro $ROS_DISTRO
+
+# install ros packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-melodic-ros-base=1.4.1-0* \
+    && rm -rf /var/lib/apt/lists/*
+
+# install ros tutorials packages
+RUN apt-get update && apt-get install -y \
+    tmux \
+    ros-melodic-serial \
+    && echo "source /catkin_ws/devel/setup.bash" >> /root/.bashrc \
