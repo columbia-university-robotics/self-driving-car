@@ -1,19 +1,23 @@
 #!/bin/bash
 
+# This is for non-device testing. Each user can run once such instance.
+
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 set -e
 
 source ./config
 
-docker run -it \
-  --name ${CONTAINER_NAME} \
-  --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
-  --rm \
-  --runtime=nvidia \
-  --net=host \
-  ${CONTAINER_NAME} "$@"
+CONTAINER_NAME=$(whoami)_$CONTAINER_NAME
 
-# Share a device with the Docker container by adding:
-#   --device=/dev/ttyUSB0 \
-# below the line containing "--name"
+if docker container inspect $CONTAINER_NAME >/dev/null 2>&1; then
+	docker exec -it $CONTAINER_NAME /bin/bash	
+else
+	docker run -it \
+	   --name "$CONTAINER_NAME" \
+	   --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
+	   --rm \
+	   --runtime=nvidia \
+	   --net=host \
+	   ${CONTAINER_NAME} "$@"
+fi

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# This script is for running the docker container using the devices (sensors, motors, etc).
+# Only one device-using container can run at a time. This is enforced automatically by this script.
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+set -e
+
+source ./config
+
+CONTAINER_NAME=master_$CONTAINER_NAME
+
+if docker container inspect $CONTAINER_NAME >/dev/null 2>&1; then
+        docker exec -it $CONTAINER_NAME /bin/bash
+else
+        docker run -it \
+           --name "$CONTAINER_NAME" \
+           --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
+           --rm \
+           --runtime=nvidia \
+           --net=host \
+           ${CONTAINER_NAME} "$@"
+fi
+
+# Share a device with the Docker container by adding:
+#   --device=/dev/ttyUSB0 \
+# below the line containing "--name"
