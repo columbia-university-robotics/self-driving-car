@@ -4,7 +4,7 @@ Once per system, you must run:i
 
 ```
 sudo apt-get install docker
-make ros-jetson-image
+make ros-jetson-base
 ```
 
 This may take up to half an hour, and will build the base image for running ros on nvidia.
