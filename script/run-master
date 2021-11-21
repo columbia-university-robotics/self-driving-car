@@ -19,10 +19,9 @@ else
            --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
            --rm \
            --runtime=nvidia \
-           --net=host \
+	   --security-opt seccomp=unconfined \
            ${CONTAINER_NAME} "$@"
 fi
-
 # Share a device with the Docker container by adding:
 #   --device=/dev/ttyUSB0 \
 # below the line containing "--name"
