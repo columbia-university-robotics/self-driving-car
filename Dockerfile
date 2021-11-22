@@ -9,4 +9,4 @@ RUN sudo apt-get -y install ros-melodic-navigation
 RUN export OPENBLAS_CORETYPE=ARMV8
 
 #Apps for testing X11. Try running "xclock" as a simple X11-compatible app.
-RUN apt install x11-apps
+RUN apt -y install x11-apps
