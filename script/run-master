@@ -18,7 +18,10 @@ else
            --name "$CONTAINER_NAME" \
            --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
            --rm \
-           --runtime=nvidia \
+           --net host \
+           --env "DISPLAY" \
+           --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
+	   --runtime=nvidia \
 	   --security-opt seccomp=unconfined \
            ${CONTAINER_NAME} "$@"
 fi
