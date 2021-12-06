@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/l4t-base:r32.3.1
+FROM nvcr.io/nvidia/l4t-base:r32.6.1
 
 # setup timezone
 RUN echo 'Etc/UTC' > /etc/timezone && \
@@ -9,7 +9,7 @@ RUN echo 'Etc/UTC' > /etc/timezone && \
 
 # Enable restart without interaction
 RUN apt-get install debconf; \
-    echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections
+    echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
 
 # install packages
 RUN apt-get update && apt-get install -q -y --no-install-recommends \
@@ -54,7 +54,7 @@ RUN rosdep init && \
 
 # install ros packages
 RUN apt-get update && apt-get install -y -q --no-install-recommends \
-    ros-melodic-ros-base=1.4.1-0* \
+    ros-melodic-desktop \
     && rm -rf /var/lib/apt/lists/*
 
 # Fix permissions for ros_entrypoint script
