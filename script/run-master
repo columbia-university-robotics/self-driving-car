@@ -19,12 +19,13 @@ else
            --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
            --rm \
            --net host \
-           --env "DISPLAY" \
-           --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
 	   --runtime=nvidia \
+	   --env=DISPLAY \
+           -v /tmp/.X11-unix:/tmp/.X11-unix \
 	   --security-opt seccomp=unconfined \
            ${CONTAINER_NAME} "$@"
 fi
+
 # Share a device with the Docker container by adding:
 #   --device=/dev/ttyUSB0 \
 # below the line containing "--name"

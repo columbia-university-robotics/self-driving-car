@@ -18,6 +18,8 @@ else
 	   --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
 	   --rm \
 	   --runtime=nvidia \
+	   --env=DISPLAY \
+	   -v /tmp/.X11-unix:/tmp/.X11-unix \
 	   --security-opt seccomp=unconfined \
 	   ${CONTAINER_NAME} "$@"
 fi

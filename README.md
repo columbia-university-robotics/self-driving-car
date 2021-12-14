@@ -81,3 +81,11 @@ Try this:
 ```
 script/run sh -c "cd /tmp/ && ls"
 ```
+
+### Visualization apps like `rviz` don't work!
+
+You need to give the docker container access to your xhost. Run:
+
+```
+sudo xhost +local:docker
+```
