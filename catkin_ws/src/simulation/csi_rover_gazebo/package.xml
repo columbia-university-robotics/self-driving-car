@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>csi_rover_gazebo</name>
+  <version>0.0.0</version>
+  <description>
+    The csi_rover_gazebo package
+  </description>
+
+  <maintainer email="spaceinitiative@columbia.edu">
+    Space Initiative Team
+  </maintainer>
+  <license>TODO</license>
+
+  <url type="repository">https://github.com/CSIRover/SRC-Phase2.git</url>
+
+
+  <author email="spaceinitiative@columbia.edu">Space Initiative Team</author>
+  <!-- In alphabetical order -->
+  <author email="c.calloway@columbia.edu">Mikey (Chris) Calloway </author>
+  <author email="nd2567@columbia.edu">Natasha Dada </author>
+  <author email="-@EMAIL.com">Nathalie Hager </author>
+  <author email="nhuberfeely@gmail.com">Noah Huber-Feely </author>
+  <author email="yongyang.nie@gmail.com">Neil Nie</author>
+  <author email="js5425@columbia.edu">Jonathan Sanabria </author>
+  <author email="-@EMAIL.com">Sam Silverman  </author>
+
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!--exec_depend>ackermann_msgs</exec_depend-->
+  <exec_depend>csi_rover_description</exec_depend>  <!--exec_depend>ackermann_vehicle_description</exec_depend-->
+
+
+  <build_depend>controller_manager</build_depend>
+  <build_depend>controller_manager_msgs</build_depend>
+  <build_depend>effort_controllers</build_depend>
+  <build_depend>joint_state_controller</build_depend>
+  <build_export_depend>controller_manager</build_export_depend>
+  <build_export_depend>controller_manager_msgs</build_export_depend>
+  <build_export_depend>effort_controllers</build_export_depend>
+  <build_export_depend>joint_state_controller</build_export_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>controller_manager_msgs</exec_depend>
+  <exec_depend>effort_controllers</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
+
+</package>

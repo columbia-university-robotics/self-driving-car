@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!-- csi_rover.launch
+http://answers.gazebosim.org/question/21826/how-to-use-the-gazebo_ros-skid-steer-drive-plugin/
+
+        Vehicle pose. x, y, and z are measured in meters. roll, pitch, and yaw
+        are measured in radians.
+-->
+
+<launch>
+
+    <include file="$(find csi_rover_gazebo)/launch/csi_rover.launch" />
+
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find csi_rover_gazebo)/rviz/basic_rviz_config.rviz" />
+
+    <node name="rqt_dashboard" pkg="rqt_gui" type="rqt_gui" respawn="false" output = "screen"
+          args="--perspective-file $(find csi_rover_controls)/config/csi_rover_control.perspective"/>
+
+</launch>

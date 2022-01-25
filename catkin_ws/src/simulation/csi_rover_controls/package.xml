@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>csi_rover_controls</name>
+  <version>0.0.0</version>
+  <description>The csi_rover_description package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="todo@todo.todo">todo</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>csi_rover_description</exec_depend>  
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>controller_manager_msgs</exec_depend>
+  <exec_depend>effort_controllers</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>gazebo_ros_control</exec_depend>
+  <exec_depend>hardware_interface</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>transmission_interface</exec_depend>
+  <exec_depend>rviz</exec_depend>
+
+  <exec_depend>sdf</exec_depend>
+
+
+  <exec_depend>gazebo_plugins</exec_depend>
+
+
+  <exec_depend>xacro</exec_depend>
+  <!-- -mysp -->
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+  <build_depend>gazebo_ros_control</build_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_depend>transmission_interface</build_depend>
+  <build_export_depend>gazebo_ros_control</build_export_depend>
+  <build_export_depend>hardware_interface</build_export_depend>
+  <build_export_depend>transmission_interface</build_export_depend>
+  <exec_depend>gazebo_ros_control</exec_depend>
+  <exec_depend>hardware_interface</exec_depend>
+  <exec_depend>transmission_interface</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+
+  <exec_depend>rviz</exec_depend>
+
+  <exec_depend>sdf</exec_depend>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- -sim -->
+  <build_depend>message_generation</build_depend>
+  <build_depend>controller_manager</build_depend>
+  <build_depend>joint_state_controller</build_depend>
+
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>controller_manager</build_export_depend>
+  <build_export_depend>joint_state_controller</build_export_depend>
+
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <!-- -sim -->
+
+  <exec_depend>gazebo_dev</exec_depend>
+
+  <depend>gazebo_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>std_srvs</depend>
+
+  <depend>nodelet</depend>
+  <depend>angles</depend>
+  <depend>nav_msgs</depend>
+  <depend>urdf</depend>
+  <depend>tf2_ros</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>rosgraph_msgs</depend>
+  <depend>rosconsole</depend>
+  <depend>tf</depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <depend>cv_bridge</depend>
+  <depend>diagnostic_updater</depend>
+  <depend>camera_info_manager</depend>
+
+  <test_depend>rostest</test_depend>
+
+</package>

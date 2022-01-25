@@ -1,0 +1,233 @@
+<?xml version="1.0"?>
+<robot name="csi_rover" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- ==============================================
+            include other urdf files here
+    ================================================ -->
+
+    <xacro:include filename="$(find csi_rover_description)/urdf/csi_rover.gazebo" />
+    <xacro:include filename="$(find csi_rover_description)/urdf/macros.xacro" />
+    <xacro:include filename="$(find csi_rover_description)/urdf/materials.xacro" />
+
+    <!-- ==============================================
+            define parameters here
+    ================================================ -->
+    <xacro:property name="TOTAL_length" value="2.2860"/>
+    <xacro:property name="TOTAL_width" value="2.2098"/>
+    <xacro:property name="TOTAL_height" value="0.9490"/>
+
+    <xacro:property name="wheel_separation_length" value="1.5748"/>
+    <xacro:property name="wheel_separation_width" value="1.87325"/>
+
+    <xacro:property name="steering_torque" value="10.000"/>
+    <xacro:property name="steering_speed" value="15.000"/>
+
+    <xacro:property name="PI_div_2" value="1.5707"/>
+
+    <xacro:property name="wheel_radius" value="0.275"/>
+    <xacro:property name="wheel_width" value="${(TOTAL_width-wheel_separation_width)/2}"/>
+    <xacro:property name="wheel_mass" value="2"/>
+
+    <xacro:property name="chassis_length" value="1.5"/>
+    <xacro:property name="chassis_width" value="1.25"/>
+    <xacro:property name="chassis_height" value="${wheel_width}"/>
+    <xacro:property name="chassis_mass" value="8"/>
+
+    <xacro:property name="cameraSize" value="0.08"/>
+    <xacro:property name="cameraMass" value="0.1"/>
+
+    <xacro:property name="axle_eff_limit" value="100.00"/>
+    <xacro:property name="axle_vel_limit" value="${wheel_radius*2*2*PI_div_2*1.5}"/>
+
+    <!-- ==============================================
+            robot body
+    ================================================ -->
+
+    <link name="chassis">
+        <gravity>on</gravity>
+        <collision name="collision">
+            <xacro:chassis_origin/>
+            <geometry>
+                <box size="${chassis_length/2} ${chassis_width/2} ${chassis_height}"/>
+            </geometry>
+        </collision>
+        <visual name="visual">
+            <xacro:chassis_origin/>
+            <geometry>
+                <mesh filename="package://csi_rover_description/meshes/robot_body.dae" scale="0.15 0.15 0.15"/>
+            </geometry>
+        </visual>
+        <inertial>
+            <xacro:chassis_origin/>
+            <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+            <xacro:solid_cube_inertia/>
+        </inertial>
+    </link>
+
+    <!-- ==============================================
+            sensor links and joints
+    ================================================ -->
+
+    <!-- Camera sensor (stereo) -->
+    <link name="main_camera_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://csi_rover_description/meshes/camera.dae" scale="0.006 0.006 0.006"/>
+            </geometry>
+            <material name="green"/>
+        </visual>
+
+        <inertial>
+            <mass value="${cameraMass}" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <box_inertia m="${cameraMass}" x="${cameraSize}" y="${cameraSize}" z="${cameraSize}" />
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+        </inertial>
+    </link>
+
+    <link name="left_camera_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+            </geometry>
+            <material name="red"/>
+        </visual>
+
+        <inertial>
+            <mass value="${cameraMass}" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <box_inertia m="${cameraMass}" x="${cameraSize}" y="${cameraSize}" z="${cameraSize}" />
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+        </inertial>
+    </link>
+
+    <link name="right_camera_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+
+        <inertial>
+            <mass value="${cameraMass}" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <box_inertia m="${cameraMass}" x="${cameraSize}" y="${cameraSize}" z="${cameraSize}" />
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+        </inertial>
+    </link>
+
+    <joint name="main_camera_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="${chassis_length / 2 + 0.1} 0 ${wheel_radius * 5 / 2}" rpy="0 0 0"/>
+        <parent link="chassis"/>
+        <child link="main_camera_link"/>
+    </joint>
+
+    <joint name="left_camera_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="+0.06 +0.2 0" rpy="0 0 0"/>
+        <parent link="main_camera_link"/>
+        <child link="left_camera_link"/>
+    </joint>
+
+    <joint name="right_camera_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="+0.06 -0.2 0" rpy="0 0 0"/>
+        <parent link="main_camera_link"/>
+        <child link="right_camera_link"/>
+    </joint>
+
+    <!-- IMU sensor -->
+    <link name="imu_link">
+        <collision>
+            <origin xyz="0 0 ${wheel_radius * 5 / 2}" rpy="0 0 0"/>
+            <geometry>
+                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 ${wheel_radius * 5 / 2}" rpy="0 0 0"/>
+            <geometry>
+                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+
+        <inertial>
+            <mass value="${cameraMass}" />
+            <origin xyz="0 0 ${wheel_radius * 5 / 2}" rpy="0 0 0"/>
+            <box_inertia m="${cameraMass}" x="${cameraSize}" y="${cameraSize}" z="${cameraSize}" />
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+        </inertial>
+    </link>
+
+    <joint name="imu_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz=".4 0 0" rpy="0 0 0"/>
+        <parent link="chassis"/>
+        <child link="imu_link"/>
+    </joint>
+
+    <!-- Hokuyo Laser -->
+    <link name="lidar_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://csi_rover_description/meshes/hokuyo.dae" scale="2 2 2"/>
+            </geometry>
+            <material name="red" />
+        </visual>
+
+        <inertial>
+            <mass value="1e-5" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+        </inertial>
+    </link>
+
+    <joint name="lidar_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="0 0 ${wheel_radius * 5 / 2 + 0.05}" rpy="0 0 0"/>
+        <parent link="chassis"/>
+        <child link="lidar_link"/>
+    </joint>
+
+    <xacro:wheel lr_prefix="left"  fr_prefix="front"  lr_reflect="1"   fr_reflect="1"/>
+    <xacro:wheel lr_prefix="left"  fr_prefix="rear"   lr_reflect="-1"   fr_reflect="1"/>
+    <xacro:wheel lr_prefix="right" fr_prefix="front"  lr_reflect="1"  fr_reflect="-1"/>
+    <xacro:wheel lr_prefix="right" fr_prefix="rear"   lr_reflect="-1"  fr_reflect="-1"/>
+
+</robot>

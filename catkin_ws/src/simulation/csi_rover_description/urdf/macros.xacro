@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<robot>
+
+    <macro name="chassis_origin">
+        <origin xyz="0 0 ${wheel_radius * 3 / 2}" rpy="0 0 0"/>
+    </macro>
+
+    <macro name="null_inertial">
+        <inertial>
+            <mass value="0.001"/>
+            <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.0001"/>
+        </inertial>
+    </macro>
+
+    <macro name="solid_cube_inertia">
+        <mass value="${chassis_mass}"/>
+        <inertia ixx="${chassis_mass * (wheel_width * wheel_width + chassis_height * chassis_height) / 12}"
+                 ixy="0" ixz="0"
+                 iyy="${chassis_mass * (wheel_width * wheel_width + chassis_height * chassis_height) / 12}"
+                 iyz="0"
+                 izz="${chassis_mass * (wheel_width * wheel_width + wheel_width * wheel_width) / 12}"/>
+    </macro>
+
+    <!-- Steering Transmission -->
+    <macro name="steering_transmission" params="lr_prefix fr_prefix lr_reflect fr_reflect ">
+
+        <joint name="${lr_prefix}_${fr_prefix}_to_chassis" type="fixed">
+            <parent link="chassis"/>
+            <child link="${lr_prefix}_${fr_prefix}_steering_link"/>
+            <origin xyz="${lr_reflect*(wheel_separation_length/2)} ${fr_reflect*(wheel_separation_width/2)} ${wheel_radius*2}"/>
+        </joint>
+
+        <!-- SHOULD TURN WHEELS TO MOVE FOREWARD OR BACKWARD -->
+        <joint name="${lr_prefix}_${fr_prefix}_axle" type="continuous">
+            <parent link="${lr_prefix}_${fr_prefix}_axle_link"/>
+            <child link="${lr_prefix}_${fr_prefix}_wheel"/>
+            <origin rpy="0 0 0"/>
+            <axis xyz="0 1 0"/>
+            <limit effort="${axle_eff_limit}" velocity="${axle_vel_limit}" />
+        </joint>
+
+        <!-- STEER LEFT OR RIGHT -->
+        <joint name="${lr_prefix}_${fr_prefix}_steering_joint" type="revolute">
+            <parent link="${lr_prefix}_${fr_prefix}_steering_link"/>
+            <child link="${lr_prefix}_${fr_prefix}_axle_link"/>
+            <origin xyz="0 0 ${-wheel_radius - chassis_height}" />
+            <axis xyz="0 0 1"/>
+<!--            <limit lower="0" upper="0"-->
+<!--                   effort="${steering_torque}" velocity="${steering_speed}"/>-->
+            <limit lower="${-PI_div_2}" upper="${PI_div_2}"
+                   effort="${steering_torque}" velocity="${steering_speed}"/>
+        </joint>
+
+        <transmission name="${lr_prefix}_${fr_prefix}_axle_trans">
+
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="${lr_prefix}_${fr_prefix}_axle">
+                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            </joint>
+
+            <actuator name="${lr_prefix}_${fr_prefix}_axle_act">
+                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+
+        </transmission>
+
+        <link name="${lr_prefix}_${fr_prefix}_axle_link">
+
+            <null_inertial/>
+
+            <visual name="visual">
+                <origin xyz="0 0 0 " rpy="0 1.5707 1.5707" />
+                <geometry>
+                    <cylinder length="0.20" radius="0.05"/>
+                </geometry>
+                <material name="blue" />
+            </visual>
+        </link>
+
+        <!-- Steering Link -->
+        <link name="${lr_prefix}_${fr_prefix}_steering_link">
+
+            <null_inertial/>
+
+            <visual name="visual">
+                <geometry>
+                    <box size="${chassis_length/2} ${chassis_width/8} ${chassis_height}"/>
+                </geometry>
+                <material name="green" />
+            </visual>
+
+        </link>
+
+        <!--AT TOP OF WHEEL-->
+
+        <transmission name="${lr_prefix}_${fr_prefix}_steering_trans">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="${lr_prefix}_${fr_prefix}_steering_joint">
+                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="${lr_prefix}_${fr_prefix}_steering_act">
+                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+        </transmission>
+
+    </macro>
+
+    <!-- Wheel -->
+    <macro name="wheel" params="lr_prefix fr_prefix lr_reflect fr_reflect">
+
+        <link name="${lr_prefix}_${fr_prefix}_wheel">
+            <visual>
+                <origin xyz="0 0 0" rpy="${PI_div_2} 0 0"/>
+                <!--<origin xyz="${lr_reflect*(wheel_separation_length/2)} ${fr_reflect*(wheel_separation_width/2+wheel_width/2)} 0"
+                rpy="${PI_div_2} 0 0"/> z(  ${-wheel_radius/2} )-->
+                <geometry>
+                    <mesh filename="package://csi_rover_description/meshes/wheel.dae" scale="0.12 0.12 0.12"/>
+                </geometry>
+            </visual>
+
+            <collision>
+                <origin xyz="0 0 0" rpy="${PI_div_2} 0 0"/>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+                </geometry>
+            </collision>
+
+            <inertial>
+                <origin xyz="0 0 0" rpy="${PI_div_2} 0 0"/>
+                <mass value="${wheel_mass}"/>
+                <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
+            </inertial>
+        </link>
+
+        <steering_transmission lr_prefix="${lr_prefix}" fr_prefix="${fr_prefix}"
+                               lr_reflect="${lr_reflect}" fr_reflect="${fr_reflect}"/>
+
+<!--        <gazebo reference="${lr_prefix}_${fr_prefix}_wheel">-->
+<!--            <material>Gazebo/Blue</material>-->
+<!--        </gazebo>-->
+
+    </macro>
+
+</robot>

@@ -1,0 +1,5 @@
+<launch>
+  <param name="rover_id" value="1"/>
+  <param name="global_position_topic" value="/csi_rover/odom"/>
+  <node pkg="csi_rover_sensor_spoofers" type="volatile_detector" name="volatile_detector" output="screen" />
+</launch>

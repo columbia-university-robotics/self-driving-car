@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!-- csi_rover.launch
+http://answers.gazebosim.org/question/21826/how-to-use-the-gazebo_ros-skid-steer-drive-plugin/
+
+        Vehicle pose. x, y, and z are measured in meters. roll, pitch, and yaw
+        are measured in radians.
+-->
+
+<launch>
+
+<!--    <arg name="world_name" default="worlds/empty.world"/>-->
+
+    <arg name="world_name" default="$(find csi_rover_gazebo)/world/apollo_15.world"/>
+    <arg name="cmd_timeout" default="0.5"/>
+
+    <!-- Vehicle pose 
+    <arg name="x" default="0.0"/>
+    <arg name="y" default="0.0"/>
+    <arg name="z" default="0.1"/>
+    <arg name="roll" default="0.0"/>
+    <arg name="pitch" default="0.0"/>
+    <arg name="yaw" default="1.57079632679"/>-->
+
+    <!-- Get the description files.-->
+    <include file="$(find csi_rover_description)/launch/csi_rover.launch" />
+
+    <!-- Include vision -->
+    <include file="$(find csi_rover_vision)/launch/vision.launch" />
+
+    <!-- Spawn World -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <!-- <arg name="world_name" value="$(find csi_rover_gazebo)/worlds/apollo_15.world"/> -->
+      <arg name="verbose" value="true"/>
+    </include>
+
+</launch>

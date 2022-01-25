@@ -1,0 +1,52 @@
+<launch>
+
+<!--    <arg name="manager" default="node_manager"/> &lt;!&ndash; Must be globally qualified &ndash;&gt;
+    <arg name="respawn" default="false" />
+    <arg name="left" default="/camera/left" />
+    <arg name="right" default="/camera/right" />
+    <arg name="approximate_sync" default="false" />
+
+    <arg     if="$(arg respawn)" name="bond" value="" />
+    <arg unless="$(arg respawn)" name="bond" value="&#45;&#45;no-bond" />
+
+    &lt;!&ndash; Basic processing for left camera &ndash;&gt;
+    <include file="$(find image_proc)/launch/image_proc.launch"
+             ns="$(arg left)">
+        <arg name="manager" value="$(arg manager)" />
+        <arg name="respawn" value="$(arg respawn)" />
+    </include>
+
+    &lt;!&ndash; Basic processing for right camera &ndash;&gt;
+    <include file="$(find image_proc)/launch/image_proc.launch"
+             ns="$(arg right)">
+        <arg name="manager" value="$(arg manager)" />
+        <arg name="respawn" value="$(arg respawn)" />
+    </include>
+
+    &lt;!&ndash; Disparity image &ndash;&gt;
+    <node pkg="nodelet" type="nodelet" name="disparity"
+          args="load stereo_image_proc/disparity $(arg manager) $(arg bond)"
+          respawn="$(arg respawn)" >
+        <param name="approximate_sync" value="$(arg approximate_sync)" />
+    </node>
+
+    &lt;!&ndash; PointCloud2 &ndash;&gt;
+    <node pkg="nodelet" type="nodelet" name="point_cloud2"
+          args="load stereo_image_proc/point_cloud2 $(arg manager) $(arg bond)"
+          respawn="$(arg respawn)" >
+        <param name="approximate_sync" value="$(arg approximate_sync)" />
+    </node>-->
+-->
+    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" ns="stereo">
+
+                <remap to="/csi_rover/camera/right/image_raw" from="right/image_raw" />
+                <remap to="/csi_rover/camera/right/camera_info" from="right/camera_info" />
+
+                <remap to="/csi_rover/camera/left/image_raw" from="left/image_raw" />
+                <remap to="/csi_rover/camera/left/camera_info" from="left/camera_info" />
+    </node>
+
+    <node name="dynamic_reconfigure_load" pkg="dynamic_reconfigure" type="dynparam"
+          args="load /stereo/stereo_image_proc $(find csi_rover_vision)/params/stereo_config_3.yaml" />
+
+</launch>

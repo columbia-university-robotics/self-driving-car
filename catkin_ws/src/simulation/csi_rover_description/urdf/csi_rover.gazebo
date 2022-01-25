@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<robot>
+
+    <gazebo>
+        <static>0</static>
+    </gazebo>
+
+    <!-- ==============================================
+            robot localization ground truth
+    ================================================ -->
+    <gazebo>
+        <plugin name="rover_odom" filename="librover_odom.so">
+            <updateRate>30.0</updateRate>
+            <robotNamespace>/csi_rover</robotNamespace>
+            <robotBaseFrame>chassis</robotBaseFrame>
+            <odometryTopic>odom</odometryTopic>
+            <odometryFrame>odom</odometryFrame>
+        </plugin>
+    </gazebo>
+
+    <!-- ==============================================
+            robot localization ground truth
+    ================================================ -->
+
+    <gazebo>
+        <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+            <alwaysOn>true</alwaysOn>
+            <updateRate>50.0</updateRate>
+            <bodyName>chassis</bodyName>
+            <topicName>/ground_truth</topicName>
+            <gaussianNoise>0.01</gaussianNoise>
+            <frameName>world</frameName>
+            <xyzOffsets>0 0 0</xyzOffsets>
+            <rpyOffsets>0 0 0</rpyOffsets>
+        </plugin>
+    </gazebo>
+
+    <!-- ==============================================
+            change the color the chassis and the wheels
+    ================================================ -->
+
+    <gazebo reference="chassis">
+        <material>Gazebo/LightBlue</material>
+    </gazebo>
+
+    <!-- ==============================================
+            control plugins
+    ================================================ -->
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotNamespace>/csi_rover</robotNamespace>
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+        </plugin>
+    </gazebo>
+
+    <!-- ==============================================
+            the sensor suite
+            camera, depth camera, lidar, IMU
+    ================================================ -->
+
+    <gazebo reference="left_camera_link">
+        <sensor type="multicamera" name="stereo_camera">
+            <update_rate>30.0</update_rate>
+
+            <!-- Left Camera -->
+            <camera name="left">
+                <horizontal_fov>1.22173</horizontal_fov>
+                <image>
+                    <width>1280</width>
+                    <height>720</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+
+            <!-- Left Camera -->
+            <camera name="right">
+                <pose>0 -0.40 0 0 0 0</pose>
+                <horizontal_fov>1.22173</horizontal_fov>
+                <image>
+                    <width>1280</width>
+                    <height>720</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+
+            <plugin name="stereo_camera_controller" filename="libgazebo_ros_multicamera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>0.0</updateRate>
+                <cameraName>csi_rover/camera</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>left_camera_link</frameName>
+                <rightFrameName>right_camera_link</rightFrameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>0.0</distortionK1>
+                <distortionK2>0.0</distortionK2>
+                <distortionK3>0.0</distortionK3>
+                <distortionT1>0.0</distortionT1>
+                <distortionT2>0.0</distortionT2>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <!-- hokuyo -->
+    <gazebo reference="lidar_link">
+<!--        <sensor type="ray" name="head_hokuyo_sensor">-->
+                    <sensor type="gpu_ray" name="head_hokuyo_sensor">
+            <pose>0 0 0 0 0 0</pose>
+            <visualize>false</visualize>
+            <update_rate>40</update_rate>
+            <ray>
+                <scan>
+                    <horizontal>
+                        <samples>720</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-2*1.570796</min_angle>
+                        <max_angle>2*1.570796</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.10</min>
+                    <max>30.0</max>
+                    <resolution>0.01</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <!-- Noise parameters based on published spec for Hokuyo laser
+                         achieving "+-30mm" accuracy at range < 10m.  A mean of 0.0m and
+                         stddev of 0.01m will put 99.7% of samples within 0.03m of the true
+                         reading. -->
+                    <mean>0.0</mean>
+                    <stddev>0.01</stddev>
+                </noise>
+            </ray>
+                        <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_gpu_laser.so">
+<!--            <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">-->
+                <topicName>/csi_rover/laser/scan</topicName>
+                <frameName>lidar_link</frameName>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <!-- IMU sensor -->
+    <gazebo reference="imu_link">
+        <gravity>true</gravity>
+        <sensor name="imu_sensor" type="imu">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <visualize>true</visualize>
+
+            <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+                <robotNamespace>/csi_rover</robotNamespace>
+                <topicName>imu</topicName>
+                <bodyName>imu_link</bodyName>
+                <updateRateHZ>30.0</updateRateHZ>
+                <gaussianNoise>0.0</gaussianNoise>
+                <xyzOffset>0 0 0</xyzOffset>
+                <rpyOffset>0 0 0</rpyOffset>
+                <frameName>imu_link</frameName>
+            </plugin>
+            <pose>0 0 0 0 0 0</pose>
+        </sensor>
+    </gazebo>
+
+</robot>

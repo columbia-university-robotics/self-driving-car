@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+"""
+ Spoofs the functionality of the NASA volatile sensor.
+"""
+import math
+from std_msgs.msg import String
+from geometry_msgs.msg import Twist, Pose
+from nav_msgs.msg import Odometry
+from gazebo_msgs.msg import ModelStates
+from csi_rover_sensor_spoofers.msg import vol_sensor_msg
+import rospy
+
+def position_report(data):
+    rospy.loginfo(rospy.get_caller_id() + "Position %s", data.data)
+  
+
+
+class VolatileDetector():
+    def __init__(self):
+        # Set up default array
+        self.volatiles = [[(1, 2, 1), 1, "oxygen"], [(0.5, 0.5, 0.5), 2, "nitrogen"]]
+        self.read_gazebo_pos = False
+        self.rover_id = rospy.get_param('/rover_id')
+        global_position_topic = rospy.get_param('/global_position_topic')
+
+        rospy.Subscriber(global_position_topic, Odometry, self.position_report)
+        rospy.Subscriber('/gazebo/model_states', ModelStates, self.model_handler)
+        self.vol_pub = rospy.Publisher('volatile_sensor', vol_sensor_msg, queue_size=10)
+
+    def model_handler(self, models):
+        if self.read_gazebo_pos: # Don't read more than once so as to speed up execution
+            return
+        # This method gets coordinates of all Gazebo world items named 'sphere' and uses them as volatile location
+        prefix = 'unit_sphere_'
+        vol_idxes = []
+        for i,val in enumerate(models.name):
+            if val[0:len(prefix)] == prefix:
+                vol_idxes.append(i)
+        self.volatiles = []
+        for idx in vol_idxes:
+            pose = models.pose[idx].position
+            self.volatiles.append([(pose.x, pose.y, pose.z), idx, "oxygen"])
+        rospy.loginfo(self.volatiles)
+        self.read_gazebo_pos = True
+
+    def _euclid(self, coor1, coor2):
+        # Computes euclidean distance between 3-axis points
+        return math.sqrt((coor1[0]-coor2[0])**2 + (coor1[1]-coor2[1])**2 + (coor1[2]-coor2[2])**2)
+
+    def position_report(self, pos):
+        # Ingests a position and returns a volatile sensor reading if it meets sensor criteria
+        THRESHOLD = 2
+        coors = pos.pose.pose.position
+        coor_tuple = (coors.x, coors.y, coors.z)
+        min_dist = float('inf')
+        vol_type = None
+        vol_idx = None
+        in_shadow = False
+        for vol in self.volatiles:
+            dist = self._euclid(coor_tuple, vol[0])
+            if dist < min_dist:
+                min_dist = dist
+                vol_type = vol[2]
+                vol_idx = vol[1]
+        if min_dist < THRESHOLD:
+            rospy.loginfo('pubbing a volatile find')
+            self.vol_pub.publish(vol_type, vol_idx, in_shadow, min_dist)
+
+    def start(self):
+        # Spin till terminated
+        rospy.spin()
+            
+def main():
+    rospy.init_node('volatile_spoofer')
+    try:
+        spoofer = VolatileDetector()
+        spoofer.start()
+    except rospy.ROSInterruptException:
+        pass
+
+if __name__ == '__main__':
+    main()
+
