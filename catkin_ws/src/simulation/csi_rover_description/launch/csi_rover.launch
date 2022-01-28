@@ -10,6 +10,8 @@
     <!-- Load the URDF into the ROS Parameter Server -->
     <param name="robot_description" command="$(find xacro)/xacro '$(find csi_rover_description)/urdf/csi_rover.xacro'" />
 
+    <node name="static_transform_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 world odom 10" />
+
     <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
     <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
           args="-urdf -model csi_rover -param robot_description"/>

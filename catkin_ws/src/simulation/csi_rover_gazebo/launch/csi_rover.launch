@@ -9,9 +9,6 @@ http://answers.gazebosim.org/question/21826/how-to-use-the-gazebo_ros-skid-steer
 
 <launch>
 
-<!--    <arg name="world_name" default="worlds/empty.world"/>-->
-
-    <arg name="world_name" default="$(find csi_rover_gazebo)/world/apollo_15.world"/>
     <arg name="cmd_timeout" default="0.5"/>
 
     <!-- Vehicle pose 
@@ -30,7 +27,7 @@ http://answers.gazebosim.org/question/21826/how-to-use-the-gazebo_ros-skid-steer
 
     <!-- Spawn World -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-      <!-- <arg name="world_name" value="$(find csi_rover_gazebo)/worlds/apollo_15.world"/> -->
+      <arg name="world_name" value="$(find csi_rover_gazebo)/worlds/simple_world.world"/>
       <arg name="verbose" value="true"/>
     </include>
 
