@@ -1,5 +1,7 @@
 FROM nvcr.io/nvidia/l4t-base:r32.6.1
 
+FROM stereolabs/zed:3.0-devel-jetson-jp4.2
+
 # setup timezone
 RUN echo 'Etc/UTC' > /etc/timezone && \
     ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
