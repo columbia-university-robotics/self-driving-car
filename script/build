@@ -10,4 +10,4 @@ echo "Building Docker image..."
 docker build -t $(whoami)_${CONTAINER_NAME} ${PROJECT_ROOT}
 
 echo "Running catkin_make..."
-${PROJECT_ROOT}/script/run sh -c 'cd /catkin_ws/ && catkin_make'
+${PROJECT_ROOT}/script/run sh -c 'cd /catkin_ws/ && catkin_make -DCMAKE_LIBRARY_PATH=/usr/local/cuda/lib64/stubs -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so'

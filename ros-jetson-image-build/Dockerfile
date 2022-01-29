@@ -1,6 +1,14 @@
 FROM nvcr.io/nvidia/l4t-base:r32.6.1
 
-FROM stereolabs/zed:3.0-devel-jetson-jp4.2
+#https://ngc.nvidia.com/catalog/containers/nvidia:l4t-base
+ARG L4T_MINOR_VERSION=6.1
+ARG ZED_SDK_MAJOR=3
+ARG ZED_SDK_MINOR=6.4
+ARG JETPACK_MAJOR=4
+ARG JETPACK_MINOR=6
+
+# ==========================
+# ==========================
 
 # setup timezone
 RUN echo 'Etc/UTC' > /etc/timezone && \

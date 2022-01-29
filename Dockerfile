@@ -1,5 +1,9 @@
 FROM ros-jetson-base
 
+RUN gcc --version
+RUN sudo apt-get -y install build-essential
+RUN gcc --version
+
 # Put any commands to install packages, etc. here
 RUN sudo apt-get -y install usbutils
 RUN sudo apt-get -y install ros-melodic-gmapping
@@ -17,9 +21,9 @@ RUN sudo apt-get install -y libyaml-cpp-dev
 RUN sudo apt-get install -y  libpcap-dev
 RUN sudo apt-get install -y libprotobuf-dev protobuf-compiler
 
-# RUN wget --quiet https://download.stereolabs.com/zedsdk/3.6/jp46/jetsons
-# RUN chmod u+x jetsons
-# RUN ./jetsons -- silent
+RUN wget --quiet https://download.stereolabs.com/zedsdk/3.6/jp46/jetsons
+RUN chmod u+x jetsons
+RUN ./jetsons -- silent skip_tools
 
 RUN export OPENBLAS_CORETYPE=ARMV8
 
