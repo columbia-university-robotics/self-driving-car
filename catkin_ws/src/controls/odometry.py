@@ -17,8 +17,8 @@ class Util:
         return math.fmod(math.pi+h1+h2, math.pi*2)-math.pi
     @staticmethod
     def avg_of_angles(a, b):
-        diff = math.fmod(a - b + 180 + 360, 360) - 180
-        return math.fmod(360 + b + diff/2, 360)
+        diff = math.fmod(a - b + math.pi + 2*math.pi, 2*math.pi) - math.pi
+        return math.fmod(2*math.pi + b + diff/2, 2*math.pi)
 
 # Useful constants.
 # TODO: Create library for project-wide constants such as these
