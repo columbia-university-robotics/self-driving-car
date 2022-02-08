@@ -20,6 +20,7 @@ RUN sudo apt-get -y install ros-melodic-cv-bridge ros-melodic-image-geometry ros
 RUN sudo apt-get install -y libyaml-cpp-dev
 RUN sudo apt-get install -y  libpcap-dev
 RUN sudo apt-get install -y libprotobuf-dev protobuf-compiler
+RUN sudo apt install -y libpcl-dev
 
 RUN wget --quiet https://download.stereolabs.com/zedsdk/3.6/jp46/jetsons
 RUN chmod u+x jetsons
