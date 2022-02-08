@@ -15,7 +15,7 @@ RUN sudo apt-get -y install ros-melodic-robot-localization
 RUN sudo apt-get -y install ros-melodic-controller-manager
 RUN sudo apt-get -y install ros-melodic-joint-state-controller
 RUN sudo apt-get -y install ros-melodic-robot-state-publisher
-RUN sudo apt-get -y install ros-melodic-cv-bridge ros-melodic-image-geometry ros-melodic-image-proc ros-melodic-gazebo-dev ros-melodic-gazebo-msgs ros-melodic-camera-info-manager
+RUN sudo apt-get -y install ros-melodic-cv-bridge ros-melodic-image-geometry ros-melodic-image-proc ros-melodic-gazebo-dev ros-melodic-gazebo-msgs ros-melodic-camera-info-manager ros-melodic-tf2-sensor-msgs
 
 RUN sudo apt-get install -y libyaml-cpp-dev
 RUN sudo apt-get install -y  libpcap-dev

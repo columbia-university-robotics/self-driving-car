@@ -1,0 +1,3 @@
+[submodule "catkin_ws/src/sensing/zed-ros-wrapper"]
+	path = catkin_ws/src/sensing/zed-ros-wrapper
+	url = https://github.com/stereolabs/zed-ros-wrapper.git
