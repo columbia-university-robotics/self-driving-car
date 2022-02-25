@@ -1,0 +1,6 @@
+<launch>
+        <remap from="/rslidar_points" to="/cloud_in"/>
+	<node name="pointcloud_to_laserscan_node" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan">
+	</node>
+
+</launch>
