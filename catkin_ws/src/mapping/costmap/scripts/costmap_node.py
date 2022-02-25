@@ -13,32 +13,33 @@ import rospy
 # Useful constants.
 # TODO: Create library for project-wide constants such as these
 class Constants:
-    l = 1  # wheel base length (m)
-    w = 1  # lateral wheel seperation (m)
-    radius = 1  # radius of the wheel (m)
+    sigma = 0
+    kernel_size = 0
 
-
-# Stores physical position and velocity of robot
-class Costmap:
+# Wrapper to synchronize access to OccupancyGrid costmap
+class State:
     def __init__(self):
-        self.timestamp = rospy.Time(0)  # Time zero means we don't yet know time
+        self.costmap = None # OccupancyGrid
 
-    # Takes speed of wheels in rad/s and turning angle in radians, updating costmap. Pass a mutex to make thread-safe.
-    def update(self, timestamp, mutex=None):
+    # Takes an occupancy grid from gmapping, updating costmap. Pass a mutex to make thread-safe.
+    def update(self, newGridmap, mutex=None):
+        # Do calculations on newGridmap here
+
 
         # Reading variables must be done synchronously to avoid race conditions
         if (mutex): mutex.acquire()
-        old = copy.deepcopy(self)
+        # Update costmap here
+
+
         if (mutex): mutex.release()
 
-        # Create new costmap
-
-
-    # Returns Odometry object to be broadcast to rostopic. Pass a mutex to make thread-safe.
+    # Returns costmap object to be broadcast to rostopic. Pass a mutex to make thread-safe.
     def get_costmap(self, mutex=None):
         if (mutex): mutex.acquire()
-        state = copy.deepcopy(self)
+        c = copy.deepcopy(costmap)
         if (mutex): mutex.release()
+
+        return c
 
 
 # Keeps track of odometry costmap and interfaces with ros
@@ -46,25 +47,31 @@ class CostmapNode:
     def __init__(self):
         rospy.init_node('costmap_node', anonymous=False)
 
-        self.costmap = Costmap()
+        self.state = State()
         self.mutex = threading.Lock()
 
-        self.subscriber = rospy.Subscriber('/grid_map', OccupancyGrid, self.grid_map_callback, queue_size=1)
+        self.publisher = rospy.Publisher('/localization/dead_reckon/odom', Odometry, queue_size=10, latch=True)
+        self.subscriber = rospy.Subscriber('/map', OccupancyGrid, self.grid_map_callback, queue_size=1)
+        
 
     # Asynchronously updates with new data
     # TODO: call self.costmap.update() with relevant parameters from data
     def grid_map_callback(self, data):
-        pass
+        self.state.update(data, mutex=self.mutex)
+        self.publish_map()
+
 
     # Publish odometry information to rostopic
     def publish_map(self):
-        pass
+        costmap = self.state.get_costmap(mutex=self.mutex)
+        if(costmap):
+            self.publisher.publish(costmap)   
 
 
 if __name__ == '__main__':
     try:
         costmap = CostmapNode()
-        rate = rospy.Rate(25)
+        rospy.spin()
 
     except rospy.ROSInterruptException:
         pass
