@@ -16,7 +16,7 @@ if docker container inspect $CONTAINER_NAME >/dev/null 2>&1; then
 else
         docker run -it \
            --name "$CONTAINER_NAME" \
-	   --device "/dev/ttyACM0" \
+	   --privileged  \
            --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
            --rm \
            --net host \
