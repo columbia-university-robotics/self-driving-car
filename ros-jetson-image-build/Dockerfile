@@ -75,3 +75,16 @@ RUN apt-get update && apt-get install -y \
     tmux \
     ros-melodic-serial \
     && echo "source /catkin_ws/devel/setup.bash" >> /root/.bashrc \
+
+RUN sudo apt-get -y install usbutils
+RUN sudo apt-get install -y libyaml-cpp-dev
+RUN sudo apt-get install -y  libpcap-dev
+RUN sudo apt-get install -y libprotobuf-dev protobuf-compiler
+RUN sudo apt install -y libpcl-dev
+RUN apt -y install x11-apps
+
+RUN sudo apt-get -y install ros-melodic-robot-localization
+RUN sudo apt-get -y install ros-melodic-controller-manager
+RUN sudo apt-get -y install ros-melodic-joint-state-controller
+RUN sudo apt-get -y install ros-melodic-robot-state-publisher
+RUN sudo apt-get -y install ros-melodic-gmapping ros-melodic-joy ros-melodic-navigation ros-melodic-turtlesim
