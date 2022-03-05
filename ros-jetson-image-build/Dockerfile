@@ -74,7 +74,7 @@ RUN chmod +x /ros_entrypoint.sh
 RUN apt-get update && apt-get install -y \
     tmux \
     ros-melodic-serial \
-    && echo "source /catkin_ws/devel/setup.bash" >> /root/.bashrc \
+    && echo "source /catkin_ws/devel/setup.bash" >> /root/.bashrc
 
 RUN sudo apt-get -y install usbutils
 RUN sudo apt-get install -y libyaml-cpp-dev
