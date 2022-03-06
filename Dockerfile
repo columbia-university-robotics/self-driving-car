@@ -4,7 +4,9 @@ RUN sudo apt-get -y install build-essential
 RUN gcc --version
 
 # Put any commands to install packages, etc. here
-RUN apt install -y vim
+RUN apt-get install -y vim
+RUN apt-get install -y python3-pip
+RUN pip3 install cython
 RUN sudo apt-get -y install ros-melodic-cv-bridge ros-melodic-image-geometry ros-melodic-image-proc ros-melodic-gazebo-dev ros-melodic-gazebo-msgs ros-melodic-camera-info-manager ros-melodic-tf2-sensor-msgs
 
 RUN sudo apt install -y ros-melodic-vesc ros-melodic-pcl-ros ros-melodic-pcl-conversions ros-melodic-controller* ros-melodic-joint-limits-interface
