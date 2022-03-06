@@ -10,7 +10,7 @@ RUN sudo apt install -y ros-melodic-vesc ros-melodic-pcl-ros ros-melodic-pcl-con
 
 RUN wget --quiet https://download.stereolabs.com/zedsdk/3.6/jp46/jetsons
 RUN chmod u+x jetsons
-RUN ./jetsons -- silent skip_tools
+RUN ./jetsons -- silent skip_tools 2>/dev/null
 
 RUN export OPENBLAS_CORETYPE=ARMV8
 
