@@ -17,7 +17,6 @@ else
 	   --net=host \
 	   --publish 11311:11311 \
 	   --gpus all \
-	   --privileged \
 	   --name "$CONTAINER_NAME" \
 	   --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
 	   --rm \
