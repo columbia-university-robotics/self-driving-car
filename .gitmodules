@@ -1,6 +1,0 @@
-[submodule "catkin_ws/src/sensing/zed-ros-wrapper"]
-	path = catkin_ws/src/sensing/zed-ros-wrapper
-	url = https://github.com/stereolabs/zed-ros-wrapper.git
-[submodule "catkin_ws/src/sensing/rslidar_sdk"]
-	path = catkin_ws/src/sensing/rslidar_sdk
-	url = https://github.com/RoboSense-LiDAR/rslidar_sdk.git
