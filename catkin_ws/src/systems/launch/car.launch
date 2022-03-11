@@ -7,7 +7,10 @@
     <remap from="sensors/core" to="systems/input/vesc_sensors" />
     <remap from="/rslidar_points" to="systems/input/lidar_pointcloud"/>
     <remap from="/zed/point_cloud/cloud_registered" to="systems/input/zed_pointcloud"/>
+    <remap from="sensors/core" to="systems/vesc/sensors/core" />
+    <remap from="sensors/servo_position_command" to="systems/vesc/sensors/servo_position" />
+
 	<include file="$(find vesc_driver)/launch/vesc_driver_node.launch" />
-    <include file="$(find rslidar_sdk)/launch/start.launch" />
-	<include file="$(find zed_ros_wrapper)/zed_wrapper/launch/zed.launch" />
+    <!--<include file="$(find rslidar_sdk)/launch/start.launch" /> -->
+	<!--<include file="$(find zed_ros_wrapper)/zed_wrapper/launch/zed.launch" />-->
 </launch>
