@@ -1,4 +1,4 @@
 <launch>
-    <remap from="joy" to="systems/output/joystick" />
+    <remap from="joy" to="systems/input/joystick" />
     <node pkg="joy" type="joy_node" name="joy_node" />
 </launch>
