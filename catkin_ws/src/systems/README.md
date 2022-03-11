@@ -11,6 +11,6 @@ car-driver.launch:
         systems/input/lidar_pointcloud (sensor_msgs/PointCloud2): Gives lidar point cloud
         systems/input/zed_pointcloud (sensor_msgs/PointCloud2): Gives zed color point cloud
 
-joystick-driver.launch:
+joystick.launch:
     Input topics:
         systems/input/joy (sensor_msgs/Joy): Gives joystick state.
