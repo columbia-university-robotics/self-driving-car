@@ -7,6 +7,8 @@ import rospy
 import tf
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Float64
+from VescState.msg import VescStateStamped
 
 # Useful methods
 # TODO: Create library for project-wide methods such as these
@@ -19,6 +21,13 @@ class Util:
     def avg_of_angles(a, b):
         diff = math.fmod(a - b + math.pi + 2*math.pi, 2*math.pi) - math.pi
         return math.fmod(2*math.pi + b + diff/2, 2*math.pi)
+
+    def translate(value, left_min, left_max, right_min, right_max):
+        left_span = left_max-left_min
+        right_span = rigth_max - right_min
+
+        value_scaled = float(value-left_min)/float(left_span)
+        return right_min+(value_scaled*right_span)
 
 # Useful constants.
 # TODO: Create library for project-wide constants such as these
@@ -41,8 +50,13 @@ class State:
         self.timestamp = rospy.Time(0) # Time zero means we don't yet know time
 
     # Takes speed of wheels in rad/s and turning angle in radians, updating state. Pass a mutex to make thread-safe.
-    def update(self, wheelSpeed, steerAngle, timestamp, mutex=None):
+    def update(self, wheelSpeed = None, steerAngle = None, timestamp, mutex=None):
         
+        if(wheelSpeed == None):
+            wheelSpeed = self.speed
+        if(steerAngle == None):
+            steerAngle = self.steerAngle
+
         # Reading variables must be done synchronously to avoid race conditions
         if(mutex): mutex.acquire()
         old=copy.deepcopy(self)
@@ -114,12 +128,22 @@ class OdometryNode:
         self.mutex=threading.Lock()
 
         self.publisher = rospy.Publisher('/localization/dead_reckon/odom', Odometry, queue_size=10)
-        self.subscriber = rospy.Subscriber('/odom', Odometry, self.subscriber_callback, queue_size=2)
+        #self.subscriber = rospy.Subscriber('/odom', Odometry, self.subscriber_callback, queue_size=2)
+        self.sensors_core_subscriber = rospy.Subscriber('systems/vesc/sensors/core', VescStateStamped, self.sensors_core_subscriber_callback, queue_size=2)
+        self.servo_position_subscriber = rospy.Subscriber('systems/vesc/sensors/servo_position', Float64, self.servo_position_subscriber_callback, queue_size=2)
 
     # Asynchronously updates with new data
     # TODO: call self.state.update() with relevant parameters from data
     def subscriber_callback(self, data):
         self.state.update(0, 0, rospy.Time.now(), mutex=self.mutex)
+
+    def sensors_core_subscriber_callback(self, data):
+        self.state.update(wheelSpeed = data.speed, steerAngle = None, rospy.Time.now(), mutex=self.mutex)
+
+    def servo_position_subscriber_callback(self, data):
+        angle_mapped = translate(data.data, 0, 1, math.pi/6, -math.pi/6)
+        self.state.update(wheelSpeed = None, steerAngle = angle_mapped, rospy.Time.now(), mutex=self.mutex)
+
 
     # Publish odometry information to rostopic
     def publish_odometry(self):
