@@ -1,6 +1,18 @@
-# ROS Docker Simple
+# Columbia Robotics Self Driving Car Project
 
-Once per system, you must run:i
+## Introduction 
+
+Welcome to the repository of the Columbia University Robotics Club Self Driving Car project. We are building a complete
+autonomous navigation stack with our own perception, mapping, planning, and controls systems. The hardware platform is
+based on the Traxxas Slash and the F1/10 project. 
+
+<center>
+<img src="docs/media/car.png" alt="drawing" width="500"/>
+</center>>
+
+## Docker Instructions
+
+Once per system, you must run:
 
 ```
 sudo apt-get install docker
@@ -50,10 +62,6 @@ You can give your command as an argument to `script/run`, for example:
 script/run roslaunch example.launch
 ```
 
-### How do I pass a device (e.g. serial, joystick) to the container?
-
-Edit `script/run` and add the line `--device=/dev/ttyUSB0 \` (changing the `/dev` path to match the path to your device).
-
 ### How can I easily coordinate multiple containers and have them talk to one another?
 
 The `docker-compose` tool is the standard way to run multiple containers together: https://docs.docker.com/compose/overview/
@@ -89,3 +97,19 @@ You need to give the docker container access to your xhost. Run:
 ```
 sudo xhost +local:docker
 ```
+
+## About the Team
+
+Columbia University Robotics Club is for any Columbia/Barnard student interested in robotics, autonomous systems, 
+artificial intelligence, and more. We welcome undergraduates, graduate students, faculty, and staff of all majors and 
+backgrounds to join us in learning from each other and working with each other in these exciting and rapidly growing 
+fields. No prior experience is necessary to get involved with CURC. We welcome members regardless of skill level, 
+and the ultimate mission of CURC is to learn and do new things in robotics.
+
+## Special Thanks to
+
+- Columbia Robotics Club administrators
+- Columbia University Mechanical Engineering Department
+- RoboSense for supplying the LiDAR(s)
+- UPenn & the F1/10 project
+- MIT Racecar Project
