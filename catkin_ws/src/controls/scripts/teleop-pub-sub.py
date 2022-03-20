@@ -9,8 +9,8 @@ class TeleOpNode():
         speed = data.axes[1] # Left stick vertical axis
         angle = data.axes[2] # Left stick horizontal axis
 
-        speed_to_rad = ((speed)*(700))
-        speed_to_rad = min(700, speed_to_rad)
+        speed_to_rad = ((speed)*(500))
+        speed_to_rad = min(500, speed_to_rad)
         
         angle = (-1 * angle+1)/2
         
