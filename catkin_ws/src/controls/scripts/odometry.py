@@ -50,13 +50,11 @@ class State:
         self.vy = 0.0
         self.timestamp = rospy.Time(0) # Time zero means we don't yet know time
 
-    # Takes speed of wheels in rad/s and turning angle in radians, updating state. Pass a mutex to make thread-safe.
+    # Takes speed of wheels in RPM and turning angle in radians, updating state. Pass a mutex to make thread-safe.
     def update(self, timestamp, wheelSpeed=None, steerAngle=None, mutex=None):
         
-        if(wheelSpeed == None):
-            wheelSpeed = self.speed
-        if(steerAngle == None):
-            steerAngle = self.steerAngle
+        # convert wheel speed from RPM to rad/s 
+        wheelSpeed *= 0.10472
 
         # Reading variables must be done synchronously to avoid race conditions
         if(mutex): mutex.acquire()
@@ -71,7 +69,6 @@ class State:
         # Find new speed and generate trapezium approximation for average speed over time period
         new.speed = Constants.radius*wheelSpeed
         interp_speed = (old.speed+new.speed)/2
-        
         # Code that requires a time interval (don't run the first time)
         if(old.timestamp!=rospy.Time(0)): 
             dt = (new.timestamp - old.timestamp).to_sec()
@@ -126,10 +123,11 @@ class OdometryNode:
         rospy.init_node('odometry', anonymous=False)
 
         self.state=State()
+        self.steer_angle = 0.0
         self.mutex=threading.Lock()
 
         self.publisher = rospy.Publisher('/localization/dead_reckon/odom', Odometry, queue_size=10)
-        #self.subscriber = rospy.Subscriber('/odom', Odometry, self.subscriber_callback, queue_size=2)
+        self.odom_subscriber = rospy.Subscriber('/localization/odom', Odometry, self.subscriber_callback, queue_size=2)
         self.sensors_core_subscriber = rospy.Subscriber('systems/vesc/sensors/core', VescStateStamped, self.sensors_core_subscriber_callback, queue_size=2)
         self.servo_position_subscriber = rospy.Subscriber('systems/vesc/sensors/servo_position', Float64, self.servo_position_subscriber_callback, queue_size=2)
 
@@ -141,12 +139,10 @@ class OdometryNode:
         self.state.update(0, 0, rospy.Time.now(), mutex=self.mutex)
 
     def sensors_core_subscriber_callback(self, data):
-        self.state.update(wheelSpeed=data.state.speed, steerAngle=None, timestamp=rospy.Time.now(), mutex=self.mutex)
+        self.state.update(wheelSpeed=data.state.speed, steerAngle=self.steer_angle, timestamp=rospy.Time.now(), mutex=self.mutex)
 
     def servo_position_subscriber_callback(self, data):
-        angle_mapped = Util.translate(data.data, 0, 1, math.pi/6, -math.pi/6)
-        self.state.update(wheelSpeed=None, steerAngle=angle_mapped, timestamp=rospy.Time.now(), mutex=self.mutex)
-
+        self.steer_angle = Util.translate(data.data, 0, 1, math.pi/6, -math.pi/6)
 
     # Publish odometry information to rostopic
     def publish_odometry(self):
