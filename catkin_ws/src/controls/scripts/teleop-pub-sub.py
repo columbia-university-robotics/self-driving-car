@@ -9,8 +9,8 @@ class TeleOpNode():
         speed = data.axes[1] # Left stick vertical axis
         angle = data.axes[2] # Left stick horizontal axis
 
-        speed_to_rad = ((speed)*(500))
-        speed_to_rad = min(500, speed_to_rad)
+        speed_to_rad = ((speed)*(700))
+        speed_to_rad = min(700, speed_to_rad)
         
         angle = (-1 * angle+1)/2
         
@@ -25,7 +25,7 @@ class TeleOpNode():
         self.speed_topic = rospy.Publisher("systems/output/speed", Float64)
         self.steer_angle_topic = rospy.Publisher("systems/output/steer_angle", Float64)
         
-        rospy.Subscriber("/joy", Joy, self.callback)
+        rospy.Subscriber("/systems/input/joystick", Joy, self.callback)
         
         rospy.init_node("teleop_node")
     
