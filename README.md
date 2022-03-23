@@ -7,8 +7,8 @@ autonomous navigation stack with our own perception, mapping, planning, and cont
 based on the Traxxas Slash and the F1/10 project. 
 
 <center>
-<img src="docs/media/car.png" alt="drawing" width="500"/>
-</center>>
+<img src="docs/media/car.png" alt="drawing" width="600"/>
+</center>
 
 ## Docker Instructions
 
