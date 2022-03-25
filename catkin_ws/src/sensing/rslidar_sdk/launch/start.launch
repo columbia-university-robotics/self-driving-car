@@ -1,7 +1,6 @@
 <launch>
 
-  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 1.57079632679 0 /base_link /rslidar 100" />
-
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0.2 0 0 0 /base_link /rslidar 10" />
   <node pkg="rslidar_sdk" name="rslidar_sdk_node" type="rslidar_sdk_node" output="screen">
   </node>
   <!-- rviz -->
