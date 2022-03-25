@@ -1,11 +1,18 @@
 <launch>
 	<!-- Remap topics -->
-        <remap from="systems/input/lidar_pointcloud" to="/cloud_in"/>
+        <remap to="/systems/input/lidar_pointcloud" from="/cloud_in"/>
 	<remap from="/scan" to="mapping/laserscan"/>
 	
 	<!-- Launch the point cloud to laserscan node -->
-	<node name="pointcloud_to_laserscan_node" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan" output="screen">
-		<param name="output_frame_id" value="/rslidar"/>
+	<node name="pointcloud_to_laserscan_node" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" output="screen">
+		<param name="range_min" value="0.1" 		/>
+		<param name="range_max" value="30" 		/>
+		<param name="angle_increment" value="0.003490659" 		/>
+		<param name="min_height" value="0.00" />
+		<param name="max_height" value="1.0" />
+		<param name="angle_max" value="6.28318530718" />
+		<param name="angle_min" value="0" />
+		<param name="scan_time" value="0.1" />
 	</node>
 
 	<!-- Launch the gmapping node -->
@@ -13,8 +20,6 @@
 		<param name="base_frame" value="base_link"	/>
 		<param name="odom_frame" value="odom"		/>
     		<param name="map_update_interval" value="5.0"	/>
-		<param name="range_min" value="0.1" 		/>
-		<param name="range_max" value="30" 		/>
   	</node>
 	
 </launch>
