@@ -9,6 +9,7 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
 from vesc_msgs.msg import VescStateStamped
+import constants as Constants
 
 # Useful methods
 # TODO: Create library for project-wide methods such as these
@@ -29,13 +30,6 @@ class Util:
 
         value_scaled = float(value-left_min)/float(left_span)
         return right_min+(value_scaled*right_span)
-
-# Useful constants.
-# TODO: Create library for project-wide constants such as these
-class Constants:
-  l = 0.325755 #wheel base length (m)
-  w = 0.24765 #lateral wheel seperation (m)
-  radius = 0.11 / 2 #radius of the wheel (m)
 
 # Stores physical position and velocity of robot
 class State:
