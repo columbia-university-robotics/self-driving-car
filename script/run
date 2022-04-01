@@ -14,8 +14,6 @@ if docker container inspect $CONTAINER_NAME >/dev/null 2>&1; then
 	docker exec -it $CONTAINER_NAME /bin/bash	
 else
 	docker run -it \
-	   --net=host \
-	   --publish 11311:11311 \
 	   --gpus all \
 	   --name "$CONTAINER_NAME" \
 	   --volume ${PROJECT_ROOT}/catkin_ws:/catkin_ws \
