@@ -11,6 +11,8 @@ RUN sudo apt-get -y install ros-melodic-cv-bridge ros-melodic-image-geometry ros
 
 RUN sudo apt install -y ros-melodic-vesc ros-melodic-pcl-ros ros-melodic-pcl-conversions ros-melodic-controller* ros-melodic-joint-limits-interface
 
+RUN apt install ros-melodic-pointcloud-to-laserscan
+
 RUN wget --quiet https://download.stereolabs.com/zedsdk/3.6/jp46/jetsons
 RUN chmod u+x jetsons
 RUN ./jetsons -- silent skip_tools 2>/dev/null
