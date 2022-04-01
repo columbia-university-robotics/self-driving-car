@@ -1,0 +1,13 @@
+[Unit]
+Description=CURC Tunnel (ID XX)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/autossh -M 0 -N -i /.ssh/id_rsa -o ExitOnForwardFailure=yes -R 431XX:localhost:22 -R 432XX:localhost:3389 tunnel@servers.columbiaroboticsclub.com
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
