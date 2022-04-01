@@ -12,6 +12,6 @@
 
     <!-- launching components -->
 	<include file="$(find vesc_driver)/launch/vesc_driver_node.launch" />
-    <!-- <include file="$(find rslidar_sdk)/launch/start.launch" /> -->
+    	<include file="$(find rslidar_sdk)/launch/start.launch" />
 	<!-- <include file="$(find zed_ros_wrapper)/zed_wrapper/launch/zed.launch" /> -->
 </launch>
