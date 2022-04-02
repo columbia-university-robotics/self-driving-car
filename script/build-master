@@ -10,4 +10,4 @@ echo "Building Docker image..."
 docker build -t master_${CONTAINER_NAME} ${PROJECT_ROOT}
 
 echo "Running catkin_make..."
-${PROJECT_ROOT}/script/run sh -c 'cd /catkin_ws/ && catkin_make'
+${PROJECT_ROOT}/script/run-master sh -c 'cd /catkin_ws/ && catkin_make'
