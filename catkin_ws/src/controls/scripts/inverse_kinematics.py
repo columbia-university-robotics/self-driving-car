@@ -23,12 +23,11 @@ def calc_steer_angle(lin_vel, ang_vel, wheel_base_length):
       steering_angle = 0
   else:
       n = (lin_vel_magnitude * wheel_base_length) / ang_vel_z
-      steering_angle = math.atan(n) # TODO: checkout atan2
-  # steering_angle = valmap(steering_angle, -math.pi/2, math.pi/2, 0, 1)
-  print(steering_angle)
-  steering_angle = (steering_angle + (math.pi/2))/math.pi
+      steering_angle = math.atan(n)
+  steering_angle = valmap(steering_angle, -math.pi/6, math.pi/6, 0, 1)
   print("steering angle:", steering_angle)
   return steering_angle
+
 
 class InverseKinematicsNode():
 
