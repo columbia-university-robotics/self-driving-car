@@ -1,4 +1,0 @@
-<launch>
-	<include file="$(find rslidar_sdk)/launch/start.launch" />
-	<include file="$(find zed_wrapper)/launch/zed.launch" />
-</launch>

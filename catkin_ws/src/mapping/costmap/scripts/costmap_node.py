@@ -63,7 +63,7 @@ class CostmapNode:
         self.state = State()
         self.mutex = threading.Lock()
 
-        self.publisher = rospy.Publisher('/mapping/cost-map', Odometry, queue_size=10, latch=True)
+        self.publisher = rospy.Publisher('/mapping/costmap', Odometry, queue_size=10, latch=True)
         self.subscriber = rospy.Subscriber('/map', OccupancyGrid, self.grid_map_callback, queue_size=1)
         
 

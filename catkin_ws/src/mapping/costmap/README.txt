@@ -4,7 +4,7 @@ For all components that interact with these data streams, please read the topic 
 
 Costmap_node.py: 
 	Output topics:
-		/mapping/cost-map(nav_msgs/Odometry.msg): outputs costmap odometry data
+		/mapping/costmap(nav_msgs/Odometry.msg): outputs costmap odometry data
 
 	Gmapping --> Input topics:
 		/maps(nav_msgs/OccupancyGrid.msg): takes in occupancygrid data from Gmapping
