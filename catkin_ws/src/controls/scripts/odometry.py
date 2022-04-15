@@ -9,7 +9,7 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
 from vesc_msgs.msg import VescStateStamped
-import constants as Constants
+from constants import Constants
 
 # Useful methods
 # TODO: Create library for project-wide methods such as these
@@ -69,11 +69,11 @@ class State:
 
             interp_steerAngle = Util.avg_of_angles(old.steerAngle, steerAngle)
 
-            interp_vheading = (interp_speed/Constants.l)*np.tan(np.deg2rad(interp_steerAngle))
+            interp_vheading = (interp_speed/Constants.l)*np.tan((interp_steerAngle))
 
             new.heading = Util.add_headings(old.heading, interp_vheading*dt)
 
-            new.vheading = (new.speed/Constants.l)*np.tan(np.deg2rad(new.steerAngle))
+            new.vheading = (new.speed/Constants.l)*np.tan((new.steerAngle))
 
             interp_heading = Util.avg_of_angles(old.heading, new.heading)
 
