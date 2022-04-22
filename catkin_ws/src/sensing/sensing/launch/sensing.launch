@@ -9,8 +9,8 @@
                 <param name="angle_increment" value="0.003490659"               />
                 <param name="min_height" value="0.00" />
                 <param name="max_height" value="1.0" />
-                <param name="angle_max" value="6.28318530718" />
-                <param name="angle_min" value="0" />
+                <param name="angle_max" value="3.14159265357" />
+                <param name="angle_min" value="-3.14159265357" />
                 <param name="scan_time" value="0.1" />
         </node>
 
