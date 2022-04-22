@@ -1,6 +1,6 @@
 <launch>
 	<!-- Remap topics -->
-	<remap from="/scan" to="mapping/laserscan"/>
+	<!-- <remap from="/scan" to="mapping/laserscan"/> -->
 	
 	<!-- Launch the gmapping node -->
 	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
@@ -9,7 +9,7 @@
     		<param name="map_update_interval" value="5.0"	/>
   	</node>
 	
-	<!-- Launch the costmap node -->
+	<!-- Launch the costmap node 
 	<node pkg="costmap" type="costmap_node.py" name="costmap_node" output="screen">
-	</node>	
+	</node>	-->
 </launch>
