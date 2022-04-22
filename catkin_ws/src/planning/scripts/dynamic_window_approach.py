@@ -1,6 +1,6 @@
 """
 Mobile robot motion planning sample with Dynamic Window Approach
-author: Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
+Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
 """
 
 import math
@@ -10,31 +10,13 @@ import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 
+import rospy
+from sensor_msgs.msg import Pose, OccupancyGrid, Odometry
+
 
 class RobotType(Enum):
     circle = 0
     rectangle = 1
-
-
-def state_cb():
-    """Callback for state subscriber.
-    """
-    pass
-
-def ob_cb():
-    """Callback for obstacle subscriber.
-
-    :return:
-    """
-    pass
-
-
-def goal_cb():
-    """Callback for goal subscriber.
-
-    :return:
-    """
-    pass
 
 
 def plot_arrow(x, y, yaw, length=0.5, width=0.1):  # pragma: no cover
@@ -102,11 +84,48 @@ class DWAControl:
         self.trajectory = np.array([self.state])
         if demo:
             self.goal = [10.0, 10.0]
+            self.ob = np.array(
+                [
+                    [4.0, 2.0],
+                    [5.0, 4.0],
+                    [5.0, 5.0],
+                    [5.0, 9.0],
+                    [8.0, 9.0],
+                    [8.0, 10.0],
+                    [9.0, 11.0],
+                    [12.0, 12.0],
+                    [15.0, 15.0],
+                    [13.0, 13.0],
+                ]
+            )
         else:
             self.goal = [np.nan, np.nan]
-            self.ob = [[np.nan, np.nan]]
+            self.ob = np.array([])
+            self.goal_sub = rospy.Subscriber("robot_goal", Pose, self.goal_cb)
+            self.ob_sub = rospy.Subscriber("robot_obstacles", OccupancyGrid, self.ob_cb)
+            self.state_sub = rospy.Subscriber("robot_state", Odometry, self.state_cb)
 
-        # rospy.Subscriber("", "", )
+    def state_cb(self, data):
+        """Callback for state subscriber.
+        """
+        self.state = np.array(
+            [
+                data.position.x,
+                data.position.y,
+                *self.state[2:]
+            ]
+        )
+
+    def ob_cb(self, data):
+        """Callback for obstacle subscriber.
+        """
+        # TODO: check this, it's probably not right
+        self.ob = np.array([[x, y] for x, y in data.data])
+
+    def goal_cb(self, data):
+        """Callback for goal subscriber.
+        """
+        self.goal = [data.position.x, data.position.y]
 
     def move(self, action):
         """Update the state of the agent with an action.
@@ -351,26 +370,6 @@ class Config:
         # if robot_type == RobotType.rectangle
         self.robot_width = 0.5  # [m] for collision check
         self.robot_length = 1.2  # [m] for collision check
-        # obstacles [x(m) y(m), ....]
-        self.ob = np.array(
-            [
-                [-1, -1],
-                [0, 2],
-                [4.0, 2.0],
-                [5.0, 4.0],
-                [5.0, 5.0],
-                [5.0, 6.0],
-                [5.0, 9.0],
-                [8.0, 9.0],
-                [7.0, 9.0],
-                [8.0, 10.0],
-                [9.0, 11.0],
-                [12.0, 13.0],
-                [12.0, 12.0],
-                [15.0, 15.0],
-                [13.0, 13.0],
-            ]
-        )
 
     @property
     def robot_type(self):
