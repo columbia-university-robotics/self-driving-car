@@ -1,18 +1,37 @@
-"""
-Mobile robot motion planning sample with Dynamic Window Approach
-Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
-"""
 
 import math
 from enum import Enum
 import datetime
 
-import matplotlib.pyplot as plt
+
 import numpy as np
 
 import rospy
-from sensor_msgs.msg import Pose, OccupancyGrid, Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry
+from geometry_msgs.msg import PoseStamped, Twist
 
+import numpy as np
+
+def quaternion_to_euler_angle_vectorized(w, x, y, z):
+    ysqr = y * y
+
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + ysqr)
+    X = np.degrees(np.arctan2(t0, t1))
+
+    t2 = +2.0 * (w * y - z * x)
+    t2 = np.where(t2>+1.0,+1.0,t2)
+    #t2 = +1.0 if t2 > +1.0 else t2
+
+    t2 = np.where(t2<-1.0, -1.0, t2)
+    #t2 = -1.0 if t2 < -1.0 else t2
+    Y = np.degrees(np.arcsin(t2))
+
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (ysqr + z * z)
+    Z = np.degrees(np.arctan2(t3, t4))
+
+    return X, Y, Z
 
 class RobotType(Enum):
     circle = 0
@@ -99,33 +118,47 @@ class DWAControl:
                 ]
             )
         else:
+            rospy.init_node("dwa_planner")
             self.goal = [np.nan, np.nan]
             self.ob = np.array([])
-            self.goal_sub = rospy.Subscriber("robot_goal", Pose, self.goal_cb)
-            self.ob_sub = rospy.Subscriber("robot_obstacles", OccupancyGrid, self.ob_cb)
-            self.state_sub = rospy.Subscriber("robot_state", Odometry, self.state_cb)
+            self.goal_sub = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goal_cb)
+            self.ob_sub = rospy.Subscriber("/map", OccupancyGrid, self.ob_cb)
+            self.state_sub = rospy.Subscriber("/odometry/filtered", Odometry, self.state_cb)
+            self.action_pub = rospy.Publisher("/cmd", Twist)
 
     def state_cb(self, data):
         """Callback for state subscriber.
         """
+	X, Y, yaw = quaternion_to_euler_angle_vectorized(
+		data.pose.pose.orientation.w, 
+		data.pose.pose.orientation.x, 
+		data.pose.pose.orientation.y, 
+		data.pose.pose.orientation.z)
+
         self.state = np.array(
             [
-                data.position.x,
-                data.position.y,
-                *self.state[2:]
+                data.pose.pose.position.x,
+                data.pose.pose.position.y,
+                yaw,
+		data.twist.twist.linear.x,
+		data.twist.twist.angular.z,
             ]
         )
 
     def ob_cb(self, data):
         """Callback for obstacle subscriber.
         """
-        # TODO: check this, it's probably not right
-        self.ob = np.array([[x, y] for x, y in data.data])
+        hw_arr = np.array(data.data).reshape((data.info.height, data.info.width))
+        idx = np.argwhere(hw_arr == 100)
+        idx = idx.astype(float) * data.info.resolution
+        idx[:,0] += data.info.origin.position.x
+        idx[:,1] += data.info.origin.position.y
+        self.ob = idx
 
     def goal_cb(self, data):
         """Callback for goal subscriber.
         """
-        self.goal = [data.position.x, data.position.y]
+        self.goal = [data.pose.position.x, data.pose.position.y]
 
     def move(self, action):
         """Update the state of the agent with an action.
@@ -204,7 +237,7 @@ class DWAControl:
             rot = np.transpose(rot, [2, 0, 1])
             local_ob = ob[:, None] - trajectory[:, 0:2]
             local_ob = local_ob.reshape(-1, local_ob.shape[-1])
-            local_ob = np.array([local_ob @ x for x in rot])
+            # local_ob = np.array([local_ob @ x for x in rot]) TODO python2 is sh*t
             local_ob = local_ob.reshape(-1, local_ob.shape[-1])
             upper_check = local_ob[:, 0] <= self.self.config.robot_length / 2
             right_check = local_ob[:, 1] <= self.config.robot_width / 2
@@ -306,12 +339,20 @@ class DWAControl:
             ]
         )
 
-        while True:  # TODO: change to some ROS thing
+        self.rate = rospy.Rate(50)	
+
+        while not rospy.is_shutdown():  # TODO: change to some ROS thing
 
             dw = self.calculate_dynamic_window_search_space()
             best_action, predicted_trajectory = self.calc_control_and_trajectory(dw, ob)
             self.move(best_action)  # move robot
             self.trajectory = np.vstack((self.trajectory, self.state))
+            
+            if self.goal != [np.nan, np.nan]:
+                twist = Twist()
+                twist.linear.x = best_action[0]
+                twist.angular.z = best_aciton[1]
+                self.action_pub.publish(Twist)
 
             if kwargs.get("animate", False):
                 plt.cla()
@@ -335,10 +376,12 @@ class DWAControl:
                 self.state[0] - self.goal[0], self.state[1] - self.goal[1]
             )
             if kwargs.get("print_state", False):
-                print(f"dist to goal: {dist_to_goal}; state: {self.state}")
+		pass
+                # print(f"dist to goal: {dist_to_goal}; state: {self.state}")
             if dist_to_goal <= self.config.robot_radius:
                 print("Goal!!")
-                break
+                # break
+	self.rate.sleep()
 
 
 class Config:
@@ -383,5 +426,5 @@ class Config:
 
 
 if __name__ == "__main__":
-    dwa = DWAControl(config=Config(), demo=True)
-    dwa(animate=True)
+    dwa = DWAControl(config=Config())
+    dwa()
