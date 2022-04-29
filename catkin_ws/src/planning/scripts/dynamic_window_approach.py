@@ -2,15 +2,33 @@
 import math
 from enum import Enum
 import datetime
-
-
-import numpy as np
-
 import rospy
 from nav_msgs.msg import OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped, Twist
-
 import numpy as np
+import tf2_ros
+import tf2_geometry_msgs  # **Do not use geometry_msgs. Use this instead for PoseStamped
+
+
+def transform_pose(input_pose, from_frame, to_frame):
+
+    # **Assuming /tf2 topic is being broadcasted
+    tf_buffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(tf_buffer)
+
+    pose_stamped = tf2_geometry_msgs.PoseStamped()
+    pose_stamped.pose = input_pose
+    pose_stamped.header.frame_id = from_frame
+    pose_stamped.header.stamp = rospy.Time.now()
+
+    try:
+        # ** It is important to wait for the listener to start listening. Hence the rospy.Duration(1)
+        output_pose_stamped = tf_buffer.transform(pose_stamped, to_frame, rospy.Duration(1))
+        return output_pose_stamped.pose
+
+    except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+        raise
+
 
 def quaternion_to_euler_angle_vectorized(w, x, y, z):
     ysqr = y * y
@@ -124,7 +142,7 @@ class DWAControl:
             self.goal_sub = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goal_cb)
             self.ob_sub = rospy.Subscriber("/map", OccupancyGrid, self.ob_cb)
             self.state_sub = rospy.Subscriber("/odometry/filtered", Odometry, self.state_cb)
-            self.action_pub = rospy.Publisher("/cmd", Twist)
+            self.action_pub = rospy.Publisher("/cmd", Twist, queue_size=5)
 
     def state_cb(self, data):
         """Callback for state subscriber.
@@ -150,15 +168,22 @@ class DWAControl:
         """
         hw_arr = np.array(data.data).reshape((data.info.height, data.info.width))
         idx = np.argwhere(hw_arr == 100)
+
         idx = idx.astype(float) * data.info.resolution
-        idx[:,0] += data.info.origin.position.x
-        idx[:,1] += data.info.origin.position.y
+        idx[:,1] += data.info.origin.position.x
+        idx[:,0] += data.info.origin.position.y
+        idx = idx[:, [1, 0]]
+        index = np.argmax(idx[:, 0])
+
+        # idx[:,0] += data.info.origin.position.x
+        # idx[:,1] += data.info.origin.position.y
         self.ob = idx
 
     def goal_cb(self, data):
         """Callback for goal subscriber.
         """
-        self.goal = [data.pose.position.x, data.pose.position.y]
+        pose = transform_pose(data.pose, "odom", "map")
+        self.goal = [pose.position.x, pose.position.y]
 
     def move(self, action):
         """Update the state of the agent with an action.
@@ -317,6 +342,13 @@ class DWAControl:
 
         return best_action, best_trajectory
 
+    def __del__(self):
+         twist = Twist()
+         twist.linear.x = 0
+         twist.angular.z = 0
+         print("stopping")
+         self.action_pub.publish(twist)
+
     def __call__(self, *args, **kwargs):
 
         ob = np.array(
@@ -339,20 +371,23 @@ class DWAControl:
             ]
         )
 
-        self.rate = rospy.Rate(50)	
+        self.rate = rospy.Rate(20)	
 
         while not rospy.is_shutdown():  # TODO: change to some ROS thing
 
             dw = self.calculate_dynamic_window_search_space()
             best_action, predicted_trajectory = self.calc_control_and_trajectory(dw, ob)
-            self.move(best_action)  # move robot
+            # self.move(best_action)  # move robot
             self.trajectory = np.vstack((self.trajectory, self.state))
-            
+
             if self.goal != [np.nan, np.nan]:
                 twist = Twist()
+                if np.linalg.norm(self.state[:2] - np.array(self.goal)) > 0.5:
+		    best_action[0] = max(best_action[0], 0.4)
                 twist.linear.x = best_action[0]
-                twist.angular.z = best_aciton[1]
-                self.action_pub.publish(Twist)
+                twist.angular.z = best_action[1]
+                print("computed best action", best_action)
+                self.action_pub.publish(twist)
 
             if kwargs.get("animate", False):
                 plt.cla()
@@ -390,9 +425,9 @@ class Config:
 
     def __init__(self):
         # robot parameter
-        self.max_speed = 2.0  # [m/s]
-        self.min_speed = 0  # [m/s]
-        self.max_accel = 1.5  # [m/ss]
+        self.max_speed = 1.5# 2.0  # [m/s]
+        self.min_speed = 0.50  # [m/s]
+        self.max_accel = 2.0  # [m/ss]
         self.max_yaw_rate = 60.0 * math.pi / 180.0  # [rad/s]
 
         self.max_delta_yaw_rate = 40.0 * math.pi / 180.0  # [rad/ss]
@@ -428,3 +463,5 @@ class Config:
 if __name__ == "__main__":
     dwa = DWAControl(config=Config())
     dwa()
+
+
