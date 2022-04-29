@@ -2,7 +2,7 @@
 
 <launch>
 	<!-- Remap topics -->
-	<remap from="/scan" to="mapping/laserscan"/>
+	<!-- <remap from="/scan" to="mapping/laserscan"/> -->
 	
 	<!-- Launch the hector_mapping node -->
 	<node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
@@ -10,9 +10,10 @@
 		<param name="base_frame" value="base_link"	 />
 		<param name="odom_frame" value="odom"		 />
     		<param name="map_update_interval" value="5.0"	 />
+		<param name="pub_odometry" value="true"		 />
   	</node>
 	
-	<!-- Launch the costmap node -->
+	<!-- Launch the costmap node
 	<node pkg="costmap" type="costmap_node.py" name="costmap_node" output="screen">
-	</node>	
+	</node>	-->
 </launch>

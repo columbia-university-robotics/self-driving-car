@@ -9,7 +9,7 @@
     		<param name="map_update_interval" value="5.0"	/>
   	</node>
 	
-	<!-- Launch the costmap node 
+	<!-- Launch the costmap node
 	<node pkg="costmap" type="costmap_node.py" name="costmap_node" output="screen">
-	</node>	-->
+	</node> -->
 </launch>
