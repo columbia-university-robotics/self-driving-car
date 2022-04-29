@@ -1,0 +1,6 @@
+<launch>
+
+	<!--<include file="$(find controls)/launch/teleop.launch" /> -->
+	<node pkg="controls" type="inverse_kinematics.py" name="inverse_kinematics" output="screen" />
+
+</launch>
