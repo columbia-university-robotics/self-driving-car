@@ -25,7 +25,7 @@ To run the container, put your catkin workspace in `catkin_ws` and run:
 
 ```
 make build
-make run
+make run-master
 ```
 
 If you haven't changed the Dockerfile, you can omit make build.
