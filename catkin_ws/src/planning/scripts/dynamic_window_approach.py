@@ -1,8 +1,7 @@
 
 import math
-from enum import Enum
-import datetime
 
+from enum import Enum
 
 import numpy as np
 
@@ -10,15 +9,16 @@ import rospy
 from nav_msgs.msg import OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped, Twist
 
-import numpy as np
 
 def quaternion_to_euler_angle_vectorized(w, x, y, z):
     ysqr = y * y
 
+    # Roll (x-axis rotation)
     t0 = +2.0 * (w * x + y * z)
     t1 = +1.0 - 2.0 * (x * x + ysqr)
     X = np.degrees(np.arctan2(t0, t1))
 
+    # Pitch (y-axis rotation)
     t2 = +2.0 * (w * y - z * x)
     t2 = np.where(t2>+1.0,+1.0,t2)
     #t2 = +1.0 if t2 > +1.0 else t2
@@ -26,7 +26,8 @@ def quaternion_to_euler_angle_vectorized(w, x, y, z):
     t2 = np.where(t2<-1.0, -1.0, t2)
     #t2 = -1.0 if t2 < -1.0 else t2
     Y = np.degrees(np.arcsin(t2))
-
+    
+    # Yaw (z-axis rotation)
     t3 = +2.0 * (w * z + x * y)
     t4 = +1.0 - 2.0 * (ysqr + z * z)
     Z = np.degrees(np.arctan2(t3, t4))
@@ -57,7 +58,7 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
                 [
                     -config.robot_length / 2,
                     config.robot_length / 2,
-                    (config.robot_length / 2),
+                    config.robot_length / 2,
                     -config.robot_length / 2,
                     -config.robot_length / 2,
                 ],
@@ -129,19 +130,20 @@ class DWAControl:
     def state_cb(self, data):
         """Callback for state subscriber.
         """
-	X, Y, yaw = quaternion_to_euler_angle_vectorized(
-		data.pose.pose.orientation.w, 
-		data.pose.pose.orientation.x, 
-		data.pose.pose.orientation.y, 
-		data.pose.pose.orientation.z)
+        X, Y, yaw = quaternion_to_euler_angle_vectorized(
+            data.pose.pose.orientation.w, 
+            data.pose.pose.orientation.x, 
+            data.pose.pose.orientation.y, 
+            data.pose.pose.orientation.z
+        )
 
         self.state = np.array(
             [
                 data.pose.pose.position.x,
                 data.pose.pose.position.y,
                 yaw,
-		data.twist.twist.linear.x,
-		data.twist.twist.angular.z,
+                data.twist.twist.linear.x,
+                data.twist.twist.angular.z,
             ]
         )
 
@@ -160,7 +162,7 @@ class DWAControl:
         """
         self.goal = [data.pose.position.x, data.pose.position.y]
 
-    def move(self, action):
+    def move(self, action): # TODO: do we need this if we are using the odometry for setting the state?
         """Update the state of the agent with an action.
 
         :param action: action in form (x_v_robot_frame, yaw_rate_robot_frame)
@@ -339,7 +341,7 @@ class DWAControl:
             ]
         )
 
-        self.rate = rospy.Rate(50)	
+        self.rate = rospy.Rate(50)    
 
         while not rospy.is_shutdown():  # TODO: change to some ROS thing
 
@@ -376,16 +378,16 @@ class DWAControl:
                 self.state[0] - self.goal[0], self.state[1] - self.goal[1]
             )
             if kwargs.get("print_state", False):
-		pass
+                pass
                 # print(f"dist to goal: {dist_to_goal}; state: {self.state}")
             if dist_to_goal <= self.config.robot_radius:
                 print("Goal!!")
                 # break
-	self.rate.sleep()
+    self.rate.sleep()
 
 
 class Config:
-    """
+    """Car configuration.
     """
 
     def __init__(self):
