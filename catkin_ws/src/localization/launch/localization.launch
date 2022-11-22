@@ -29,6 +29,16 @@
                                     false, false, true,
                                     false, false, false]</rosparam>
 
+    <!-- Hector Mapping Odom Messages -->
+    <param name="odom0" value="/scanmatch_odom"/>
+    <param name="odom0_differential" value="false" />
+    <param name="odom0_queue_size" value="10" />
+    <rosparam param="odom0_config">[true,  true, false,
+                                    false, false, true,
+                                    true, true, false,
+                                    false, false, true,
+                                    false, false, false]</rosparam>
+
     <!-- ZED Odom Messages
     <param name="odom1" value="/nav_msgs/Odometry"/>
     <param name="odom1_differential" value="false" />
