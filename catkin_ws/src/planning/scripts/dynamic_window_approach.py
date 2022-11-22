@@ -124,8 +124,8 @@ class DWAControl:
             self.ob = np.array([])
             self.goal_sub = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goal_cb)
             self.ob_sub = rospy.Subscriber("/map", OccupancyGrid, self.ob_cb)
-            self.state_sub = rospy.Subscriber("/odometry/filtered", Odometry, self.state_cb)
-            self.action_pub = rospy.Publisher("/cmd", Twist)
+            self.state_sub = rospy.Subscriber("/localization/dead_reckon/odom", Odometry, self.state_cb)
+            self.action_pub = rospy.Publisher("/cmd", Twist, queue_size=10)
 
     def state_cb(self, data):
         """Callback for state subscriber.
@@ -136,6 +136,7 @@ class DWAControl:
             data.pose.pose.orientation.y, 
             data.pose.pose.orientation.z
         )
+        print(data.pose.pose)
 
         self.state = np.array(
             [
@@ -146,6 +147,7 @@ class DWAControl:
                 data.twist.twist.angular.z,
             ]
         )
+        print(self.state)
 
     def ob_cb(self, data):
         """Callback for obstacle subscriber.
@@ -156,11 +158,16 @@ class DWAControl:
         idx[:,0] += data.info.origin.position.x
         idx[:,1] += data.info.origin.position.y
         self.ob = idx
+        print(data.info.origin)
+        print(self.ob)
 
     def goal_cb(self, data):
         """Callback for goal subscriber.
         """
-        self.goal = [data.pose.position.x, data.pose.position.y]
+        self.goal = [
+            data.pose.position.x,
+            data.pose.position.y,
+        ]
 
     def move(self, action): # TODO: do we need this if we are using the odometry for setting the state?
         """Update the state of the agent with an action.
@@ -383,7 +390,7 @@ class DWAControl:
             if dist_to_goal <= self.config.robot_radius:
                 print("Goal!!")
                 # break
-    self.rate.sleep()
+            self.rate.sleep()
 
 
 class Config:
