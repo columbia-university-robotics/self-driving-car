@@ -13,6 +13,6 @@
     </node>
 
     <!-- Launch the costmap node -->
-    <node pkg="costmap" type="costmap_node.py" name="costmap_node" output="screen">
-    </node>
+    <!-- <node pkg="costmap" type="costmap_node.py" name="costmap_node" output="screen">
+    </node>-->
 </launch>
