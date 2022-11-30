@@ -104,7 +104,7 @@ class DWAControl:
         self.state = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
         self.trajectory = np.array([self.state])
         if demo:
-            self.goal = [10.0, 2.0]
+            self.goal = [3.0, 1.0]
             self.ob = np.array(
                 [
                     [4.0, 2.0],
@@ -125,29 +125,32 @@ class DWAControl:
             self.ob = np.array([])
             # self.goal_sub = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goal_cb)
             self.ob_sub = rospy.Subscriber("/map", OccupancyGrid, self.ob_cb)
-            self.state_sub = rospy.Subscriber("/odometry/filtered", Odometry, self.state_cb)
+            self.state_sub = rospy.Subscriber("/slam_out_pose", PoseStamped, self.state_cb)
             self.speed_topic = rospy.Publisher("systems/output/speed", Float64)
             self.steer_angle_topic = rospy.Publisher("systems/output/steer_angle", Float64)
 
     def state_cb(self, data):
         """Callback for state subscriber.
+
+        Updates the x, y coordinates and the yaw.
         """
-        X, Y, yaw = quaternion_to_euler_angle_vectorized(
-            data.pose.pose.orientation.w, 
-            data.pose.pose.orientation.x, 
-            data.pose.pose.orientation.y, 
-            data.pose.pose.orientation.z
+        _, _, yaw = quaternion_to_euler_angle_vectorized(
+            data.pose.orientation.w,
+            data.pose.orientation.x,
+            data.pose.orientation.y,
+            data.pose.orientation.z
         )
 
         self.state = np.array(
             [
-                data.pose.pose.position.x,
-                data.pose.pose.position.y,
+                data.pose.position.x,
+                data.pose.position.y,
                 yaw,
-                data.twist.twist.linear.x,
-                data.twist.twist.angular.z,
+                self.state[3],
+                self.state[4],
             ]
         )
+        print("state_cb", self.state)
 
     def ob_cb(self, data):
         """Callback for obstacle subscriber.
@@ -168,16 +171,16 @@ class DWAControl:
     #         pose.position.y,
     #     ]
 
-    def move(self, action): # TODO: do we need this if we are using the odometry for setting the state?
-        """Update the state of the agent with an action.
+    def move(self, action):
+        """Update the velocities (linear, angular) of the agent with an action.
 
         :param action: action in form (x_v_robot_frame, yaw_rate_robot_frame)
         """
-        self.state[2] += action[1] * self.config.dt
-        self.state[0] += action[0] * math.cos(self.state[2]) * self.config.dt
-        self.state[1] += action[0] * math.sin(self.state[2]) * self.config.dt
-        self.state[3] = action[0]
-        self.state[4] = action[1]
+        # self.state[2] += action[1] * self.config.dt
+        # self.state[0] += action[0] * math.cos(self.state[2]) * self.config.dt
+        # self.state[1] += action[0] * math.sin(self.state[2]) * self.config.dt
+        self.state[3], self.state[4] = action
+        print("move", self.state)
 
     @staticmethod
     def simulate_motion(state, action, dt):
