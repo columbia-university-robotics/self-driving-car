@@ -104,7 +104,7 @@ class DWAControl:
         self.state = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
         self.trajectory = np.array([self.state])
         if demo:
-            self.goal = [10.0, 10.0]
+            self.goal = [10.0, 2.0]
             self.ob = np.array(
                 [
                     [4.0, 2.0],
@@ -401,13 +401,12 @@ class Config:
 
     def __init__(self):
         # robot parameter
-        self.max_speed = 2.0  # [m/s]
+        self.max_speed = 300
         self.min_speed = 0.5  # [m/s]
-        self.max_accel = 1.5  # [m/ss]
+        self.max_accel = 50
         self.max_yaw_rate = 60.0 * math.pi / 180.0  # [rad/s]
-
         self.max_delta_yaw_rate = 40.0 * math.pi / 180.0  # [rad/ss]
-        self.v_resolution = 0.01  # [m/s]
+        self.v_resolution = 10
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
         self.predict_time = 1.5  # [s]
