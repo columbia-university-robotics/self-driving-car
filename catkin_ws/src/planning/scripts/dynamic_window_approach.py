@@ -6,6 +6,7 @@ from enum import Enum
 import numpy as np
 
 import rospy
+from std_msgs.msg import Float64
 from nav_msgs.msg import OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped, Twist
 
@@ -362,7 +363,7 @@ class DWAControl:
                 # twist.angular.z = best_aciton[1]
                 # self.action_pub.publish(Twist)
                 self.speed_topic.publish(best_action[0])
-                self.steer_angle_topic.publish(self.best_aciton[1])
+                self.steer_angle_topic.publish(best_action[1])
 
             if kwargs.get("animate", False):
                 plt.cla()
