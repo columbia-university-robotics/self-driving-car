@@ -1,21 +1,15 @@
 FROM ros-jetson-base
 
-RUN sudo apt-get -y install build-essential
+RUN apt-get -y install build-essential
 RUN gcc --version
 
 # Put any commands to install packages, etc. here
 RUN apt-get install -y vim
 RUN apt-get install -y python3-pip
 RUN pip3 install cython
-RUN sudo apt-get -y install ros-melodic-cv-bridge ros-melodic-image-geometry ros-melodic-image-proc ros-melodic-gazebo-dev ros-melodic-gazebo-msgs ros-melodic-camera-info-manager ros-melodic-tf2-sensor-msgs ros-melodic-hector-slam
+RUN apt-get -y install ros-melodic-cv-bridge ros-melodic-image-geometry ros-melodic-image-proc ros-melodic-gazebo-dev ros-melodic-gazebo-msgs ros-melodic-camera-info-manager ros-melodic-tf2-sensor-msgs ros-melodic-hector-slam ros-melodic-urg-node
 
-RUN sudo apt install -y ros-melodic-vesc ros-melodic-pcl-ros ros-melodic-pcl-conversions ros-melodic-controller* ros-melodic-joint-limits-interface
-
-RUN apt install ros-melodic-pointcloud-to-laserscan
-
-RUN wget --quiet https://download.stereolabs.com/zedsdk/3.6/jp46/jetsons
-RUN chmod u+x jetsons
-RUN ./jetsons -- silent skip_tools 2>/dev/null
+RUN apt install -y ros-melodic-vesc ros-melodic-pcl-ros ros-melodic-pcl-conversions ros-melodic-controller* ros-melodic-joint-limits-interface
 
 RUN export OPENBLAS_CORETYPE=ARMV8
 
