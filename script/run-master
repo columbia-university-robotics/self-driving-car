@@ -24,6 +24,7 @@ else
 	   --env=DISPLAY \
            -v /tmp/.X11-unix:/tmp/.X11-unix \
 	   --security-opt seccomp=unconfined \
+	   -v /dev/input:/dev/input \
            ${CONTAINER_NAME} "$@"
 fi
 
