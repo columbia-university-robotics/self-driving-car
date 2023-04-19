@@ -62,3 +62,6 @@ catkin_ws/src/CMakeLists.txt
 
 # Mac
 .DS_Store
+
+# Planning Team
+*.npy
