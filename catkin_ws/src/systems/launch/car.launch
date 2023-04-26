@@ -1,5 +1,4 @@
 <launch>
-
     <!-- topic remapping -->
     <remap from="commands/motor/speed" to="systems/output/speed" />
     <remap from="commands/motor/current" to="systems/output/current" />

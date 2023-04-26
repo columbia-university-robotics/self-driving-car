@@ -1,7 +1,5 @@
 <launch>
     <include file="$(find systems)/launch/car.launch" />
     <include file="$(find sensing)/launch/sensing.launch" />
-    <include file="$(find controls)/launch/odometry.launch" />
-    <include file="$(find localization)/launch/localization.launch" />
-    <include file="$(find laser_mapping)/launch/hector_mapping.launch" />
+    <include file="$(find laser_mapping)/launch/mapping.launch" />
 </launch>
