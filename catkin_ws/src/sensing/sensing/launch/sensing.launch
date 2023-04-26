@@ -1,6 +1,6 @@
 <launch>
-        <node pkg="tf" type="static_transform_publisher" name="tf_base_link_to_laser" output="screen" args="0 0 0 0 0 0 1 base_link laser 10" />
-	<node pkg="urg_node" type="urg_node" name="lidar">
-		<param name="ip_address" value="192.168.0.10" />
-	</node>
+    <node pkg="tf" type="static_transform_publisher" name="tf_base_link_to_laser" output="screen" args="0 0 0 0 0 0 1 base_link laser 10" />
+    <node pkg="urg_node" type="urg_node" name="lidar">
+        <param name="ip_address" value="192.168.0.10" />
+    </node>
 </launch>
