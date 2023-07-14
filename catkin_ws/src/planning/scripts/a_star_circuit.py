@@ -322,13 +322,14 @@ def main():
     map_height_meters = map_height_voxels * map_resolution
 
     # Flip grid
-    grid = grid[::-1, ::-1]
+    grid = grid.T[::-1, ::-1]
 
     # start position
-    sx = pose[0]
-    sy = pose[1]
+    sx = -pose[0]
+    sy = -pose[1]
     rotation = Rotation.from_quat(pose[3:])
     _, _, yaw = rotation.as_euler("xyz", degrees=False)
+    yaw += np.pi / 2
 
     # set goal position
     robot_radius = 0.3
@@ -404,7 +405,7 @@ def main():
     )
 
     # Downsample map
-    downsample_factor = 2**2  # must be a factor of 2
+    downsample_factor = 2**1  # must be a factor of 2
     grid = downsample_grid(grid, downsample_factor)
     map_resolution *= downsample_factor
     map_width_voxels, map_height_voxels = len(grid), len(grid[0])

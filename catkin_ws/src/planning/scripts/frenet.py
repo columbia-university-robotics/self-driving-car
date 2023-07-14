@@ -798,6 +798,8 @@ if __name__ == "__main__":
     map_origin = np.load("/map_origin.npy")
     initial_pose = np.load("/pose.npy")
 
+    # TODO: deal with flipping grid, pose, maybe waypoints
+
     # Flip grid
     og = og[::-1, ::-1]
 
