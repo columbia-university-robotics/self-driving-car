@@ -1,3 +1,5 @@
+import os
+import sys
 import math
 
 # import matplotlib.pyplot as plt
@@ -324,15 +326,20 @@ def downsample_grid(map, factor=1):
 def main():
     print(__file__ + " start!!")
 
-    with open("/occupancy_grid.npy", "rb") as f:
+    args = sys.argv[1:]
+    if len(args) != 1:
+        ValueError("Please provide only the path to the grid and pose files.")
+    path = args[0]
+
+    with open(os.path.join(path, "occupancy_grid.npy"), "rb") as f:
         grid = np.load(f)
-    with open("map_metadata.npy", "rb") as f:
+    with open(os.path.join(path, "map_metadata.npy"), "rb") as f:
         # resolution, width, height
         map_metadata = np.load(f)
-    with open("/map_origin.npy", "rb") as f:
+    with open(os.path.join(path, "map_origin.npy"), "rb") as f:
         # position.x, position.y, position.z, quaternion.x, quaternion.y, quaternion.z, quaternion.w
         map_origin = np.load(f)
-    with open("/pose.npy", "rb") as f:
+    with open(os.path.join(path, "pose.npy"), "rb") as f:
         # position.x, position.y, position.z, quaternion.x, quaternion.y, quaternion.z, quaternion.w
         pose = np.load(f)
 
@@ -349,7 +356,7 @@ def main():
     # start position
     sx = -pose[0]
     sy = -pose[1]
-    _, _, yaw = euler_from_quaternion(pose[3:])
+    _, _, yaw = euler_from_quaternion(*pose[3:])
     yaw += np.pi / 2
 
     # set goal position
@@ -438,6 +445,7 @@ def main():
     #     plt.plot(midpoint_x, midpoint_y, "xr")
     #     plt.grid(True)
     #     plt.axis("equal")
+    #     plt.show()
 
     a_star = AStarPlanner(
         grid,
@@ -451,8 +459,8 @@ def main():
     rx, ry = a_star.planning(sx, sy, gx, gy)
 
     # save waypoints to a file
-    np.savetxt("/rx.numpy", np.array(rx))
-    np.savetxt("/ry.numpy", np.array(ry))
+    np.savetxt(os.path.join(path, "rx.numpy"), np.array(rx))
+    np.savetxt(os.path.join(path, "ry.numpy"), np.array(ry))
 
     # if show_animation:  # pragma: no cover
     #     plt.plot(rx, ry, "-r")
