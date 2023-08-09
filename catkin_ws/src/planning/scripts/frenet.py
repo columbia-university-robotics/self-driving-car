@@ -42,6 +42,29 @@ K_LON = 1.0
 WP_D_F = 5  # waypoint downsample factor
 
 
+def euler_from_quaternion(x, y, z, w):
+    """
+    Convert a quaternion into euler angles (roll, pitch, yaw)
+    roll is rotation around x in radians (counterclockwise)
+    pitch is rotation around y in radians (counterclockwise)
+    yaw is rotation around z in radians (counterclockwise)
+    """
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    roll_x = math.atan2(t0, t1)
+
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch_y = math.asin(t2)
+
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    yaw_z = math.atan2(t3, t4)
+
+    return roll_x, pitch_y, yaw_z  # in radians
+
+
 class QuarticPolynomial:
     def __init__(self, xs, vxs, axs, vxe, axe, time):
         # calc coefficient of quartic polynomial
@@ -750,8 +773,7 @@ class FrenetPlanner:
         )
         self.x = pose[0]
         self.y = pose[1]
-        rotation = Rotation.from_quat(pose[3:])
-        _, _, self.yaw = rotation.as_euler("xyz", degrees=False)
+        _, _, self.yaw = euler_from_quaternion(*pose[3:])
 
         self._rotate_waypoints()
 
@@ -811,8 +833,7 @@ if __name__ == "__main__":
     # Start position from initial pose
     sx = initial_pose[0]
     sy = initial_pose[1]
-    rotation = Rotation.from_quat(initial_pose[3:])
-    _, _, yaw = rotation.as_euler("xyz", degrees=False)
+    _, _, yaw = euler_from_quaternion(*initial_pose[3:])
     initial_pose = (sx, sy, yaw)
 
     # Create and run planner
