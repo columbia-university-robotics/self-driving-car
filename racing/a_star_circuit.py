@@ -2,13 +2,12 @@ import os
 import sys
 import math
 
-# import matplotlib.pyplot as plt
-
 import numpy as np
 
-# from PIL import Image, ImageOps
+# import matplotlib.pyplot as plt
 
 
+print_map = True
 show_animation = False
 
 
@@ -117,23 +116,8 @@ class AStarPlanner:
             )
             current = open_set[c_id]
 
-            # # show graph
-            # if show_animation:  # pragma: no cover
-            #     plt.plot(
-            #         self.calc_grid_position(current.x, self.min_x),
-            #         self.calc_grid_position(current.y, self.min_y),
-            #         "xc",
-            #     )
-            #     # for stopping simulation with the esc key.
-            #     plt.gcf().canvas.mpl_connect(
-            #         "key_release_event",
-            #         lambda event: [exit(0) if event.key == "escape" else None],
-            #     )
-            #     if len(closed_set.keys()) % 10 == 0:
-            #         plt.pause(0.001)
-
             if current.x == goal_node.x and current.y == goal_node.y:
-                print("Find goal")
+                print(f"{__file__} Found goal!")
                 goal_node.parent_index = current.parent_index
                 goal_node.cost = current.cost
                 break
@@ -277,28 +261,6 @@ class AStarPlanner:
         return motion
 
 
-# def convert_im_to_grid(filepath):
-#     # Open, grayscale, resize image
-#     im = Image.open(filepath)
-#     im = ImageOps.grayscale(im)
-#     im = im.resize((1024, 1024))
-
-#     # Convert to numpy array
-#     grid = np.asarray(im)
-
-#     # Convert all in-between gray to a single value
-#     grid = np.where(np.logical_or(grid == 0, grid == 255), grid, 100)
-
-#     # Map from colors to occupancy grid
-#     #   Black (0) -> free space (0)
-#     #   Gray (other) -> obstacle (100)
-#     #   While (255) -> unknown (-1)
-#     mapping = {0: 0, 100: 100, 255: -1}
-#     grid = np.vectorize(mapping.get)(grid)
-
-#     return grid
-
-
 def downsample_grid(map, factor=1):
     """
     Downsample grid by some factor.
@@ -323,8 +285,57 @@ def downsample_grid(map, factor=1):
     return ret
 
 
+def print_terminal_map(ox, oy, sx, sy, gx, gy, rx, ry, resolution=24):
+    min_x = min(rx + [sx, gx]) - 1
+    max_x = max(rx + [sx, gx]) + 1
+    min_y = min(ry + [sy, gy]) - 1
+    max_y = max(ry + [sy, gy]) + 1
+
+    size = max([max_x - min_x, max_y - min_y])
+
+    def coord_to_pixel(x, y):
+        return (
+            round((x - min_x) * resolution / size) - 1,
+            round((y - min_y) * resolution / size) - 1,
+        )
+
+    map = np.zeros((resolution, resolution))
+
+    # Obstacles
+    for x, y in zip(ox, oy):
+        px, py = coord_to_pixel(x, y)
+        if px >= 0 and px < resolution and py >= 0 and py < resolution:
+            map[px, py] = 1
+
+    # Waypoints
+    for x, y in zip(rx, ry):
+        px, py = coord_to_pixel(x, y)
+        map[px, py] = 2
+
+    # Start and goal
+    px, py = coord_to_pixel(sx, sy)
+    map[px, py] = 3
+    px, py = coord_to_pixel(gx, gy)
+    map[px, py] = 4
+
+    for y in range(resolution - 1, 0, -1):
+        row = ""
+        for x in range(resolution):
+            if map[x, y] == 1:
+                row += "*"
+            elif map[x, y] == 2:
+                row += "."
+            elif map[x, y] == 3:
+                row += "S"
+            elif map[x, y] == 4:
+                row += "G"
+            else:
+                row += " "
+        print(row)
+
+
 def main():
-    print(__file__ + " start!!")
+    print(f"{__file__} Start!")
 
     args = sys.argv[1:]
     if len(args) != 1:
@@ -364,6 +375,14 @@ def main():
     scaling_factor = robot_radius * 1.8
     gx = sx - (math.sin(yaw)) * scaling_factor
     gy = sy - (math.cos(yaw)) * scaling_factor
+
+    # Get obstacles before drawing the midpoint line
+    ob = np.argwhere(grid == 100)
+    downsample_factor = 1
+    ox, oy = (
+        list(ob[::downsample_factor, 0] * map_resolution + map_origin_x),
+        list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
+    )
 
     midpoint_x = (sx + gx) / 2
     midpoint_y = (sy + gy) / 2
@@ -425,28 +444,13 @@ def main():
     else:
         draw_horizontal()
 
-    ob = np.argwhere(grid == 100)
-    downsample_factor = 1
-    ox, oy = (
-        list(ob[::downsample_factor, 0] * map_resolution + map_origin_x),
-        list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
-    )
-
     # Downsample map
     downsample_factor = 2**1  # must be a factor of 2
     grid = downsample_grid(grid, downsample_factor)
     map_resolution *= downsample_factor
     map_width_voxels, map_height_voxels = len(grid), len(grid[0])
 
-    # if show_animation:  # pragma: no cover
-    #     plt.plot(ox, oy, ".k")
-    #     plt.plot(sx, sy, "og")
-    #     plt.plot(gx, gy, "xb")
-    #     plt.plot(midpoint_x, midpoint_y, "xr")
-    #     plt.grid(True)
-    #     plt.axis("equal")
-    #     plt.show()
-
+    print(f"{__file__} Planning path...")
     a_star = AStarPlanner(
         grid,
         map_resolution,
@@ -462,7 +466,16 @@ def main():
     np.savetxt(os.path.join(path, "rx.npy"), np.array(rx))
     np.savetxt(os.path.join(path, "ry.npy"), np.array(ry))
 
-    # if show_animation:  # pragma: no cover
+    if print_map:  # pragma: no cover
+        print_terminal_map(ox, oy, sx, sy, gx, gy, rx, ry)
+
+    # if show_animation:
+    #     plt.plot(ox, oy, ".k")
+    #     plt.plot(sx, sy, "og")
+    #     plt.plot(gx, gy, "xb")
+    #     plt.plot(midpoint_x, midpoint_y, "xr")
+    #     plt.grid(True)
+    #     plt.axis("equal")
     #     plt.plot(rx, ry, "-r")
     #     plt.pause(0.001)
     #     plt.show()
