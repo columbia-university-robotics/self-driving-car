@@ -1,0 +1,3 @@
+<launch>
+    <node name="ik" pkg="controls" type="inverse_kinematics.py" />
+</launch>
