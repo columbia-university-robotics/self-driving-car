@@ -42,8 +42,8 @@ done
 python3 ./racing/a_star_circuit.py "$DEST_DIR"
 
 # Copy rx.npy and ry.npy files from DEST_DIR back to the container
-docker cp "$DEST_DIR/rx.npy" "$DOCKER_CONT_ID:/path/in/container"
-docker cp "$DEST_DIR/ry.npy" "$DOCKER_CONT_ID:/path/in/container"
+docker cp "$DEST_DIR/rx.npy" "$DOCKER_CONT_ID:/rx.npy"
+docker cp "$DEST_DIR/ry.npy" "$DOCKER_CONT_ID:/ry.npy"
 
 if [ $? -eq 0 ]; then
     echo "Copied rx.npy and ry.npy files back to container"
