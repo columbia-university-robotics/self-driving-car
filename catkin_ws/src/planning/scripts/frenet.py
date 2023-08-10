@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
 import copy
@@ -6,6 +6,7 @@ import math
 import sys
 import pathlib
 import bisect
+import scipy
 
 import rospy
 
