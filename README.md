@@ -24,7 +24,7 @@ This may take up to half an hour, and will build the base image for running ros 
 To run the container, put your catkin workspace in `catkin_ws` and run:
 
 ```
-make build
+make build-master
 make run-master
 ```
 
