@@ -4,7 +4,6 @@ import math
 import sys
 import pathlib
 import bisect
-from scipy.spatial.transform import Rotation
 
 import rospy
 
@@ -805,14 +804,15 @@ class FrenetPlanner:
 
             # TODO Deal with speed and steering angle
             speed, yaw = path.s_d[1], path.yaw[1]
+            print(speed, yaw)
 
         print("Finish")
 
 
 if __name__ == "__main__":
     # load way points from a file (flip and filter based on WP_D_F)
-    wx = np.loadtxt("/rx.numpy")[::-WP_D_F]
-    wy = np.loadtxt("/ry.numpy")[::-WP_D_F]
+    wx = np.loadtxt("/rx.npy")[::-WP_D_F]
+    wy = np.loadtxt("/ry.npy")[::-WP_D_F]
 
     # Load map and metadata
     og = np.load("/occupancy_grid.npy")
@@ -820,10 +820,10 @@ if __name__ == "__main__":
     map_origin = np.load("/map_origin.npy")
     initial_pose = np.load("/pose.npy")
 
-    # TODO: deal with flipping grid, pose, maybe waypoints
+    # TODO: maybe deal with flipping grid, pose, maybe waypoints
 
     # Flip grid
-    og = og[::-1, ::-1]
+    og = og.T[::-1, ::-1]
 
     # Unpack
     og = np.where(og == 100, 1.0, 0.0)
@@ -831,9 +831,10 @@ if __name__ == "__main__":
     map_resolution, map_width, map_height = map_metadata
 
     # Start position from initial pose
-    sx = initial_pose[0]
-    sy = initial_pose[1]
+    sx = -initial_pose[0]
+    sy = -initial_pose[1]
     _, _, yaw = euler_from_quaternion(*initial_pose[3:])
+    yaw += np.pi / 2
     initial_pose = (sx, sy, yaw)
 
     # Create and run planner
