@@ -1,4 +1,7 @@
 <launch>
+    <!-- topic remapping -->
     <remap from="joy" to="systems/input/joystick" />
+
+    <!-- launching components -->
     <node pkg="joy" type="joy_node" name="joy_node" />
 </launch>

@@ -1,5 +1,5 @@
 <launch>
-    <include file="$(find systems)/launch/car.launch" />
     <include file="$(find sensing)/launch/sensing.launch" />
     <include file="$(find laser_mapping)/launch/mapping.launch" />
 </launch>
+

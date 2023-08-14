@@ -33,6 +33,7 @@ class TeleOpNode():
     
         while not rospy.is_shutdown():
             print("in while loop")
+            print((self.speed_to_pub, self.angle_to_pub))
             self.speed_topic.publish(self.speed_to_pub)
             self.steer_angle_topic.publish(self.angle_to_pub)
             print("speed: " + str(self.speed_to_pub))

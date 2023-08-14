@@ -1,0 +1,3 @@
+<launch>
+    <node name="map_serializer" pkg="driver" type="serialize_map.py" />
+</launch>

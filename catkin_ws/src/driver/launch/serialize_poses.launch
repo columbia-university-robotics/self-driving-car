@@ -1,0 +1,3 @@
+<launch>
+    <node name="waypoint_pose_appender_node" pkg="driver" type="append_pose.py" />
+</launch>

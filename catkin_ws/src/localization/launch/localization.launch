@@ -1,90 +1,99 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="" default=""/>
+    <arg name="" default=""/>
 
-  <!-- Odometry node -->
-  <!-- Attributions -->
-  <!-- Scaffolding inspired by: https://roverrobotics.com/blogs/guides/fusing-imu-encoders-with-ros-robot-localization -->
+    <!-- Odometry node -->
+    <!-- Attributions -->
+    <!-- Scaffolding inspired by: https://roverrobotics.com/blogs/guides/fusing-imu-encoders-with-ros-robot-localization -->
 
-  <node pkg="controls" type="odometry.py" name="wheel_odom_node" output="screen" />
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_node" output="screen" >
+        <!-- set up sample rates, etc. -->
+        <param name="frequency" value="30"/>
+        <param name="sensor_timeout" value="0.2"/>
+        <param name="two_d_mode" value="true"/>
+        <param name="base_link_frame" value="base_link"/>
+        <param name="map_frame" value="map"/>
+        <param name="odom_frame" value="odom"/>
+        <param name="world_frame" value="odom"/>
+        <param name="transform_time_offset" value="0.0"/>
 
-  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_node" output="screen" >
-    <!-- set up sample rates, etc. -->
-    <param name="frequency" value="30"/>
-    <param name="sensor_timeout" value="0.2"/>
-    <param name="two_d_mode" value="true"/>
-    <param name="base_link_frame" value="base_link"/>
-    <param name="map_frame" value="map"/>
-    <param name="odom_frame" value="odom"/>
-    <param name="world_frame" value="odom"/>
-    <param name="transform_time_offset" value="0.0"/>
+        <!-- Wheel Odom Messages -->
+        <param name="odom0" value="/localization/dead_reckon/odom"/>
+        <param name="odom0_differential" value="false" />
+        <param name="odom0_queue_size" value="10" />
+        <rosparam param="odom0_config">[true,  true, false,
+                                        false, false, true,
+                                        true, true, false,
+                                        false, false, true,
+                                        false, false, false]</rosparam>
 
-    <!-- Wheel Odom Messages -->
-    <param name="odom0" value="/localization/dead_reckon/odom"/>
-    <param name="odom0_differential" value="false" />
-    <param name="odom0_queue_size" value="10" />
-    <rosparam param="odom0_config">[true,  true, false,
-                                    false, false, true,
-                                    true, true, false,
-                                    false, false, true,
-                                    false, false, false]</rosparam>
+        <!-- Hector Mapping Odom Messages -->
+        <!--
+        <param name="odom0" value="/scanmatch_odom"/>
+        <param name="odom0_differential" value="false" />
+        <param name="odom0_queue_size" value="10" />
+        <rosparam param="odom0_config">[true,  true, false,
+                                        false, false, true,
+                                        true, true, false,
+                                        false, false, true,
+                                        false, false, false]</rosparam>
+        -->
 
-    <!-- ZED Odom Messages
-    <param name="odom1" value="/nav_msgs/Odometry"/>
-    <param name="odom1_differential" value="false" />
-    <param name="odom1_relative" value="false" />
-    <param name="odom1_queue_size" value="10" />
-    <rosparam param="odom1_config">[true, true, false,
-                                    false, false, true,
-                                    true, true, false,
-                                    false, false, true,
-                                    false, false, false]</rosparam>
+        <!-- ZED Odom Messages
+        <param name="odom1" value="/nav_msgs/Odometry"/>
+        <param name="odom1_differential" value="false" />
+        <param name="odom1_relative" value="false" />
+        <param name="odom1_queue_size" value="10" />
+        <rosparam param="odom1_config">[true, true, false,
+                                        false, false, true,
+                                        true, true, false,
+                                        false, false, true,
+                                        false, false, false]</rosparam>
 
-     ZED IMU message
-    <param name="imu0" value="/sensor_msgs/Imu"/>
-    <param name="imu0_differential" value="false" />
-    <param name="imu0_relative" value="true" />
-    <param name="imu0_queue_size" value="10" />
-    <param name="imu0_remove_gravitational_acceleration" value="true" />
-    <rosparam param="imu0_config">[false,  false, false,
-                                   false, false, true,
-                                   false, false, false,
-                                   false , false, true,
-                                   true, false, false]</rosparam>
-			   -->
-    <param name="print_diagnostics" value="true" />
-    <param name="debug" value="true" />
-    <param name="debug_out_file" value="debug_odom_ekf.txt" />
-    <rosparam param="process_noise_covariance">[0.05, 0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0,
-                                                0, 0.05, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
-                                                0, 0, 0.06, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0.03, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0.03, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0.06, 0, 0, 0,  0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0.025,0, 0,  0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0.025,0,  0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0.04, 0,    0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0,  0.01, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0.01, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0.02, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0.01, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0.01, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0.005]</rosparam>
+        ZED IMU message
+        <param name="imu0" value="/sensor_msgs/Imu"/>
+        <param name="imu0_differential" value="false" />
+        <param name="imu0_relative" value="true" />
+        <param name="imu0_queue_size" value="10" />
+        <param name="imu0_remove_gravitational_acceleration" value="true" />
+        <rosparam param="imu0_config">[false,  false, false,
+                                      false, false, true,
+                                      false, false, false,
+                                      false , false, true,
+                                      true, false, false]</rosparam>
+            -->
+        <param name="print_diagnostics" value="true" />
+        <param name="debug" value="true" />
+        <param name="debug_out_file" value="debug_odom_ekf.txt" />
+        <rosparam param="process_noise_covariance">[0.05, 0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0,
+                                                    0, 0.05, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
+                                                    0, 0, 0.06, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
+                                                    0, 0, 0, 0.03, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
+                                                    0, 0, 0, 0, 0.03, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,
+                                                    0, 0, 0, 0, 0, 0.06, 0, 0, 0,  0, 0, 0, 0, 0, 0,
+                                                    0, 0, 0, 0, 0, 0, 0.025,0, 0,  0, 0, 0, 0, 0, 0,
+                                                    0, 0, 0, 0, 0, 0, 0, 0.025,0,  0, 0, 0, 0, 0, 0,
+                                                    0, 0, 0, 0, 0, 0, 0, 0, 0.04, 0,    0, 0, 0, 0, 0,
+                                                    0, 0, 0, 0, 0, 0, 0, 0, 0,  0.01, 0, 0, 0, 0, 0,
+                                                    0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0.01, 0, 0, 0, 0,
+                                                    0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0.02, 0, 0, 0,
+                                                    0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0.01, 0, 0,
+                                                    0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0.01, 0,
+                                                    0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0.005]</rosparam>
 
-    <rosparam param="initial_estimate_covariance">[1e-9, 0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0,
-                                                   0, 1e-9, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
-                                                   0, 0, 1e-9, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
-                                                   0, 0, 0, 1e-9, 0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
-                                                   0, 0, 0, 0, 1e-9, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
-                                                   0, 0, 0, 0, 0, 1e-9, 0, 0, 0, 0,    0, 0, 0, 0, 0,
-                                                   0, 0, 0, 0, 0, 0, 1 , 0, 0, 0,    0, 0, 0, 0, 0,
-                                                   0, 0, 0, 0, 0, 0, 0, 0, 1e-9, 0,    0, 0, 0, 0, 0,
-                                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 1,    0, 0, 0, 0, 0,
-                                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    1, 0, 0, 0, 0,
-                                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 1 , 0, 0, 0,
-                                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 1, 0, 0,
-                                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0, 1e-9, 0,
-                                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 1e-9]</rosparam>
-
- </node>
+        <rosparam param="initial_estimate_covariance">[1e-9, 0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0,
+                                                      0, 1e-9, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
+                                                      0, 0, 1e-9, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
+                                                      0, 0, 0, 1e-9, 0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
+                                                      0, 0, 0, 0, 1e-9, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
+                                                      0, 0, 0, 0, 0, 1e-9, 0, 0, 0, 0,    0, 0, 0, 0, 0,
+                                                      0, 0, 0, 0, 0, 0, 1 , 0, 0, 0,    0, 0, 0, 0, 0,
+                                                      0, 0, 0, 0, 0, 0, 0, 0, 1e-9, 0,    0, 0, 0, 0, 0,
+                                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 1,    0, 0, 0, 0, 0,
+                                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    1, 0, 0, 0, 0,
+                                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 1 , 0, 0, 0,
+                                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 1, 0, 0,
+                                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0, 1e-9, 0,
+                                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 1e-9]</rosparam>
+    </node>
 </launch>

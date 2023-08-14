@@ -1,24 +1,25 @@
 
 import math
-from enum import Enum
-import datetime
 
+from enum import Enum
 
 import numpy as np
 
 import rospy
+from std_msgs.msg import Float64
 from nav_msgs.msg import OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped, Twist
 
-import numpy as np
 
 def quaternion_to_euler_angle_vectorized(w, x, y, z):
     ysqr = y * y
 
+    # Roll (x-axis rotation)
     t0 = +2.0 * (w * x + y * z)
     t1 = +1.0 - 2.0 * (x * x + ysqr)
     X = np.degrees(np.arctan2(t0, t1))
 
+    # Pitch (y-axis rotation)
     t2 = +2.0 * (w * y - z * x)
     t2 = np.where(t2>+1.0,+1.0,t2)
     #t2 = +1.0 if t2 > +1.0 else t2
@@ -26,7 +27,8 @@ def quaternion_to_euler_angle_vectorized(w, x, y, z):
     t2 = np.where(t2<-1.0, -1.0, t2)
     #t2 = -1.0 if t2 < -1.0 else t2
     Y = np.degrees(np.arcsin(t2))
-
+    
+    # Yaw (z-axis rotation)
     t3 = +2.0 * (w * z + x * y)
     t4 = +1.0 - 2.0 * (ysqr + z * z)
     Z = np.degrees(np.arctan2(t3, t4))
@@ -57,7 +59,7 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
                 [
                     -config.robot_length / 2,
                     config.robot_length / 2,
-                    (config.robot_length / 2),
+                    config.robot_length / 2,
                     -config.robot_length / 2,
                     -config.robot_length / 2,
                 ],
@@ -102,7 +104,7 @@ class DWAControl:
         self.state = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
         self.trajectory = np.array([self.state])
         if demo:
-            self.goal = [10.0, 10.0]
+            self.goal = [3.0, 1.0]
             self.ob = np.array(
                 [
                     [4.0, 2.0],
@@ -119,31 +121,36 @@ class DWAControl:
             )
         else:
             rospy.init_node("dwa_planner")
-            self.goal = [np.nan, np.nan]
+            self.goal = [2, 0]
             self.ob = np.array([])
-            self.goal_sub = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goal_cb)
+            # self.goal_sub = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goal_cb)
             self.ob_sub = rospy.Subscriber("/map", OccupancyGrid, self.ob_cb)
-            self.state_sub = rospy.Subscriber("/odometry/filtered", Odometry, self.state_cb)
-            self.action_pub = rospy.Publisher("/cmd", Twist)
+            self.state_sub = rospy.Subscriber("/slam_out_pose", PoseStamped, self.state_cb)
+            self.speed_topic = rospy.Publisher("systems/output/speed", Float64)
+            self.steer_angle_topic = rospy.Publisher("systems/output/steer_angle", Float64)
 
     def state_cb(self, data):
         """Callback for state subscriber.
+
+        Updates the x, y coordinates and the yaw.
         """
-	X, Y, yaw = quaternion_to_euler_angle_vectorized(
-		data.pose.pose.orientation.w, 
-		data.pose.pose.orientation.x, 
-		data.pose.pose.orientation.y, 
-		data.pose.pose.orientation.z)
+        _, _, yaw = quaternion_to_euler_angle_vectorized(
+            data.pose.orientation.w,
+            data.pose.orientation.x,
+            data.pose.orientation.y,
+            data.pose.orientation.z
+        )
 
         self.state = np.array(
             [
-                data.pose.pose.position.x,
-                data.pose.pose.position.y,
+                data.pose.position.x,
+                data.pose.position.y,
                 yaw,
-		data.twist.twist.linear.x,
-		data.twist.twist.angular.z,
+                self.state[3],
+                self.state[4],
             ]
         )
+        print("state_cb", self.state)
 
     def ob_cb(self, data):
         """Callback for obstacle subscriber.
@@ -155,21 +162,25 @@ class DWAControl:
         idx[:,1] += data.info.origin.position.y
         self.ob = idx
 
-    def goal_cb(self, data):
-        """Callback for goal subscriber.
-        """
-        self.goal = [data.pose.position.x, data.pose.position.y]
+    # def goal_cb(self, data):
+    #     """Callback for goal subscriber.
+    #     """
+    #     pose = self.tf.pose_transform(data, "map")
+    #     self.goal = [
+    #         pose.position.x,
+    #         pose.position.y,
+    #     ]
 
     def move(self, action):
-        """Update the state of the agent with an action.
+        """Update the velocities (linear, angular) of the agent with an action.
 
         :param action: action in form (x_v_robot_frame, yaw_rate_robot_frame)
         """
-        self.state[2] += action[1] * self.config.dt
-        self.state[0] += action[0] * math.cos(self.state[2]) * self.config.dt
-        self.state[1] += action[0] * math.sin(self.state[2]) * self.config.dt
-        self.state[3] = action[0]
-        self.state[4] = action[1]
+        # self.state[2] += action[1] * self.config.dt
+        # self.state[0] += action[0] * math.cos(self.state[2]) * self.config.dt
+        # self.state[1] += action[0] * math.sin(self.state[2]) * self.config.dt
+        self.state[3], self.state[4] = action
+        print("move", self.state)
 
     @staticmethod
     def simulate_motion(state, action, dt):
@@ -339,7 +350,7 @@ class DWAControl:
             ]
         )
 
-        self.rate = rospy.Rate(50)	
+        self.rate = rospy.Rate(50)    
 
         while not rospy.is_shutdown():  # TODO: change to some ROS thing
 
@@ -347,12 +358,15 @@ class DWAControl:
             best_action, predicted_trajectory = self.calc_control_and_trajectory(dw, ob)
             self.move(best_action)  # move robot
             self.trajectory = np.vstack((self.trajectory, self.state))
+            print(best_action)
             
             if self.goal != [np.nan, np.nan]:
-                twist = Twist()
-                twist.linear.x = best_action[0]
-                twist.angular.z = best_aciton[1]
-                self.action_pub.publish(Twist)
+                # twist = Twist()
+                # twist.linear.x = best_action[0]
+                # twist.angular.z = best_aciton[1]
+                # self.action_pub.publish(Twist)
+                self.speed_topic.publish(best_action[0])
+                self.steer_angle_topic.publish(best_action[1])
 
             if kwargs.get("animate", False):
                 plt.cla()
@@ -376,27 +390,26 @@ class DWAControl:
                 self.state[0] - self.goal[0], self.state[1] - self.goal[1]
             )
             if kwargs.get("print_state", False):
-		pass
+                pass
                 # print(f"dist to goal: {dist_to_goal}; state: {self.state}")
             if dist_to_goal <= self.config.robot_radius:
                 print("Goal!!")
                 # break
-	self.rate.sleep()
+            self.rate.sleep()
 
 
 class Config:
-    """
+    """Car configuration.
     """
 
     def __init__(self):
         # robot parameter
-        self.max_speed = 2.0  # [m/s]
-        self.min_speed = 0  # [m/s]
-        self.max_accel = 1.5  # [m/ss]
+        self.max_speed = 300
+        self.min_speed = 0.5  # [m/s]
+        self.max_accel = 50
         self.max_yaw_rate = 60.0 * math.pi / 180.0  # [rad/s]
-
         self.max_delta_yaw_rate = 40.0 * math.pi / 180.0  # [rad/ss]
-        self.v_resolution = 0.01  # [m/s]
+        self.v_resolution = 10
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
         self.predict_time = 1.5  # [s]
