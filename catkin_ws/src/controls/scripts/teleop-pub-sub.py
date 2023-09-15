@@ -7,7 +7,7 @@ class TeleOpNode():
 
     def callback(self, data):
         speed = data.axes[1] # Left stick vertical axis
-        angle = data.axes[2] # Left stick horizontal axis
+        angle = data.axes[0] # Left stick horizontal axis
 
         speed_to_rad = ((speed)*(300))
         speed_to_rad = min(300, speed_to_rad)
@@ -22,8 +22,8 @@ class TeleOpNode():
         self.speed_to_pub = 0
         self.angle_to_pub = 0.5
 
-        self.speed_topic = rospy.Publisher("systems/output/speed", Float64)
-        self.steer_angle_topic = rospy.Publisher("systems/output/steer_angle", Float64)
+        self.speed_topic = rospy.Publisher("systems/output/speed", Float64, queue_size = 40)
+        self.steer_angle_topic = rospy.Publisher("systems/output/steer_angle", Float64, queue_size = 40)
         
         rospy.Subscriber("/systems/input/joystick", Joy, self.callback)
         
@@ -33,6 +33,7 @@ class TeleOpNode():
     
         while not rospy.is_shutdown():
             print("in while loop")
+            print((self.speed_to_pub, self.angle_to_pub))
             self.speed_topic.publish(self.speed_to_pub)
             self.steer_angle_topic.publish(self.angle_to_pub)
             print("speed: " + str(self.speed_to_pub))

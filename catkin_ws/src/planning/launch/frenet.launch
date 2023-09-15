@@ -1,0 +1,3 @@
+<launch>
+    <node name="frenet" pkg="planning" type="frenet.py" />
+</launch>

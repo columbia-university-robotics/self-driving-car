@@ -1,17 +1,12 @@
 <launch>
-
     <!-- topic remapping -->
     <remap from="commands/motor/speed" to="systems/output/speed" />
     <remap from="commands/motor/current" to="systems/output/current" />
     <remap from="commands/motor/brake" to="systems/output/brake" />
     <remap from="commands/servo/position" to="systems/output/steer_angle" />
-    <remap from="/rslidar_points" to="systems/input/lidar_pointcloud"/>
-    <remap from="/zed/point_cloud/cloud_registered" to="systems/input/zed_pointcloud"/>
     <remap from="sensors/core" to="systems/vesc/sensors/core" />
     <remap from="sensors/servo_position_command" to="systems/vesc/sensors/servo_position" />
 
     <!-- launching components -->
-	<include file="$(find vesc_driver)/launch/vesc_driver_node.launch" />
-    	<include file="$(find rslidar_sdk)/launch/start.launch" />
-        <!-- <include file="$(find zed_wrapper)/launch/zed2.launch" /> -->
+    <include file="$(find vesc_driver)/launch/vesc_driver_node.launch" />
 </launch>
