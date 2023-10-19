@@ -357,18 +357,17 @@ def main():
     # Unpack
     map_origin_x, map_origin_y, *_ = map_origin
     map_resolution, map_width_voxels, map_height_voxels = map_metadata
-    map_resolution = round(map_resolution, 3)
+    map_resolution = round(map_resolution, 5)
     map_width_meters = map_width_voxels * map_resolution
     map_height_meters = map_height_voxels * map_resolution
 
     # Flip grid
-    grid = grid.T[::-1, ::-1]
+    grid = grid[::-1, ::]
 
     # start position
-    sx = -pose[0]
-    sy = -pose[1]
+    sx = -pose[1]
+    sy = pose[0]
     _, _, yaw = euler_from_quaternion(*pose[3:])
-    yaw += np.pi / 2
 
     # set goal position
     robot_radius = 0.3
@@ -439,10 +438,29 @@ def main():
             grid[midpoint_x_idx - i][midpoint_y_idx] = 100
             i += 1
 
+    # TODO: revisit this, might need to flip inequality
     if run > rise:
         draw_vertical()
     else:
         draw_horizontal()
+
+    # # Get obstacles before drawing the midpoint line
+    # ob = np.argwhere(grid == 100)
+    # downsample_factor = 1
+    # ox, oy = (
+    #     list(ob[::downsample_factor, 0] * map_resolution + map_origin_x),
+    #     list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
+    # )
+
+    # plt.plot(ox, oy, ".k")
+    # plt.plot(sx, sy, "og")
+    # plt.plot(gx, gy, "xb")
+    # plt.plot(midpoint_x, midpoint_y, "xr")
+    # plt.grid(True)
+    # plt.axis("equal")
+    # # plt.plot(rx, ry, "-r")
+    # plt.pause(0.001)
+    # plt.show()
 
     # Downsample map
     downsample_factor = 2**1  # must be a factor of 2
