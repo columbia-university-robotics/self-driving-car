@@ -1,0 +1,70 @@
+diff --git a/racing/a_star_circuit.py b/racing/a_star_circuit.py
+index fba305c..714323d 100644
+--- a/racing/a_star_circuit.py
++++ b/racing/a_star_circuit.py
+@@ -4,7 +4,7 @@ import math
+ 
+ import numpy as np
+ 
+-# import matplotlib.pyplot as plt
++import matplotlib.pyplot as plt
+ 
+ 
+ print_map = True
+@@ -365,9 +365,12 @@ def main():
+     grid = grid[::-1, ::]
+ 
+     # start position
+-    sx = -pose[1]
+-    sy = pose[0]
+-    _, _, yaw = euler_from_quaternion(*pose[3:])
++    # sx = -pose[1]
++    # sy = pose[0]
++    sx = 0
++    sy = 0.5
++    # _, _, yaw = euler_from_quaternion(*pose[3:])
++    yaw = 7 * np.pi / 4
+ 
+     # set goal position
+     robot_radius = 0.3
+@@ -444,23 +447,23 @@ def main():
+     else:
+         draw_horizontal()
+ 
+-    # # Get obstacles before drawing the midpoint line
+-    # ob = np.argwhere(grid == 100)
+-    # downsample_factor = 1
+-    # ox, oy = (
+-    #     list(ob[::downsample_factor, 0] * map_resolution + map_origin_x),
+-    #     list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
+-    # )
+-
+-    # plt.plot(ox, oy, ".k")
+-    # plt.plot(sx, sy, "og")
+-    # plt.plot(gx, gy, "xb")
+-    # plt.plot(midpoint_x, midpoint_y, "xr")
+-    # plt.grid(True)
+-    # plt.axis("equal")
+-    # # plt.plot(rx, ry, "-r")
+-    # plt.pause(0.001)
+-    # plt.show()
++    # Get obstacles before drawing the midpoint line
++    ob = np.argwhere(grid == 100)
++    downsample_factor = 1
++    ox, oy = (
++        list(ob[::downsample_factor, 0] * map_resolution + map_origin_x),
++        list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
++    )
++
++    plt.plot(ox, oy, ".k")
++    plt.plot(sx, sy, "og")
++    plt.plot(gx, gy, "xb")
++    plt.plot(midpoint_x, midpoint_y, "xr")
++    plt.grid(True)
++    plt.axis("equal")
++    # plt.plot(rx, ry, "-r")
++    plt.pause(0.001)
++    plt.show()
+ 
+     # Downsample map
+     downsample_factor = 2**1  # must be a factor of 2
