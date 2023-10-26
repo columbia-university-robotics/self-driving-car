@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 print_map = True
@@ -365,16 +365,13 @@ def main():
     grid = grid[::-1, ::]
 
     # start position
-    # sx = -pose[1]
-    # sy = pose[0]
-    sx = 0
-    sy = 0.5
-    # _, _, yaw = euler_from_quaternion(*pose[3:])
-    yaw = 7 * np.pi / 4
+    sx = -pose[1]
+    sy = pose[0]
+    _, _, yaw = euler_from_quaternion(*pose[3:])
 
     # set goal position
-    robot_radius = 0.3
-    scaling_factor = robot_radius * 1.8
+    robot_radius = 0.4
+    scaling_factor = robot_radius * 2.2
     gx = sx - (math.sin(yaw)) * scaling_factor
     gy = sy - (math.cos(yaw)) * scaling_factor
 
@@ -455,20 +452,17 @@ def main():
         list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
     )
 
-    plt.plot(ox, oy, ".k")
-    plt.plot(sx, sy, "og")
-    plt.plot(gx, gy, "xb")
-    plt.plot(midpoint_x, midpoint_y, "xr")
-    plt.grid(True)
-    plt.axis("equal")
-    # plt.plot(rx, ry, "-r")
-    plt.pause(0.001)
-    plt.show()
+    # if show_animation:
+    #     plt.plot(ox, oy, ".k")
+    #     plt.plot(sx, sy, "og")
+    #     plt.plot(gx, gy, "xb")
+    #     plt.plot(midpoint_x, midpoint_y, "xr")
+    #     plt.grid(True)
+    #     plt.axis("equal")
+    #     plt.plot(rx, ry, "-r")
+    #     plt.pause(0.001)
+    #     plt.show()
 
-    # Downsample map
-    downsample_factor = 2**1  # must be a factor of 2
-    grid = downsample_grid(grid, downsample_factor)
-    map_resolution *= downsample_factor
     map_width_voxels, map_height_voxels = len(grid), len(grid[0])
 
     print(f"{__file__} Planning path...")
