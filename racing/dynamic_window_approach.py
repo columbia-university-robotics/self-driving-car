@@ -5,6 +5,8 @@ Mobile robot motion planning sample with Dynamic Window Approach
 author: Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
 
 """
+import os
+import sys
 
 import math
 from enum import Enum
@@ -13,6 +15,29 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 show_animation = True
+
+
+def euler_from_quaternion(x, y, z, w):
+    """
+    Convert a quaternion into euler angles (roll, pitch, yaw)
+    roll is rotation around x in radians (counterclockwise)
+    pitch is rotation around y in radians (counterclockwise)
+    yaw is rotation around z in radians (counterclockwise)
+    """
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    roll_x = math.atan2(t0, t1)
+
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch_y = math.asin(t2)
+
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    yaw_z = math.atan2(t3, t4)
+
+    return roll_x, pitch_y, yaw_z  # in radians
 
 
 def dwa_control(x, config, goal, ob):
@@ -61,22 +86,25 @@ class Config:
         self.robot_width = 0.5  # [m] for collision check
         self.robot_length = 1.2  # [m] for collision check
         # obstacles [x(m) y(m), ....]
-        self.ob = np.array([[-1, -1],
-                            [0, 2],
-                            [4.0, 2.0],
-                            [5.0, 4.0],
-                            [5.0, 5.0],
-                            [5.0, 6.0],
-                            [5.0, 9.0],
-                            [8.0, 9.0],
-                            [7.0, 9.0],
-                            [8.0, 10.0],
-                            [9.0, 11.0],
-                            [12.0, 13.0],
-                            [12.0, 12.0],
-                            [15.0, 15.0],
-                            [13.0, 13.0]
-                            ])
+        self.ob = np.array(
+            [
+                [-1, -1],
+                [0, 2],
+                [4.0, 2.0],
+                [5.0, 4.0],
+                [5.0, 5.0],
+                [5.0, 6.0],
+                [5.0, 9.0],
+                [8.0, 9.0],
+                [7.0, 9.0],
+                [8.0, 10.0],
+                [9.0, 11.0],
+                [12.0, 13.0],
+                [12.0, 12.0],
+                [15.0, 15.0],
+                [13.0, 13.0],
+            ]
+        )
 
     @property
     def robot_type(self):
@@ -112,18 +140,18 @@ def calc_dynamic_window(x, config):
     """
 
     # Dynamic window from robot specification
-    Vs = [config.min_speed, config.max_speed,
-          -config.max_yaw_rate, config.max_yaw_rate]
+    Vs = [config.min_speed, config.max_speed, -config.max_yaw_rate, config.max_yaw_rate]
 
     # Dynamic window from motion model
-    Vd = [x[3] - config.max_accel * config.dt,
-          x[3] + config.max_accel * config.dt,
-          x[4] - config.max_delta_yaw_rate * config.dt,
-          x[4] + config.max_delta_yaw_rate * config.dt]
+    Vd = [
+        x[3] - config.max_accel * config.dt,
+        x[3] + config.max_accel * config.dt,
+        x[4] - config.max_delta_yaw_rate * config.dt,
+        x[4] + config.max_delta_yaw_rate * config.dt,
+    ]
 
     #  [v_min, v_max, yaw_rate_min, yaw_rate_max]
-    dw = [max(Vs[0], Vd[0]), min(Vs[1], Vd[1]),
-          max(Vs[2], Vd[2]), min(Vs[3], Vd[3])]
+    dw = [max(Vs[0], Vd[0]), min(Vs[1], Vd[1]), max(Vs[2], Vd[2]), min(Vs[3], Vd[3])]
 
     return dw
 
@@ -157,12 +185,15 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     # evaluate all trajectory with sampled input in dynamic window
     for v in np.arange(dw[0], dw[1], config.v_resolution):
         for y in np.arange(dw[2], dw[3], config.yaw_rate_resolution):
-
             trajectory = predict_trajectory(x_init, v, y, config)
             # calc cost
-            to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal)
+            to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(
+                trajectory, goal
+            )
             speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
-            ob_cost = config.obstacle_cost_gain * calc_obstacle_cost(trajectory, ob, config)
+            ob_cost = config.obstacle_cost_gain * calc_obstacle_cost(
+                trajectory, ob, config
+            )
 
             final_cost = to_goal_cost + speed_cost + ob_cost
 
@@ -171,8 +202,10 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
                 min_cost = final_cost
                 best_u = [v, y]
                 best_trajectory = trajectory
-                if abs(best_u[0]) < config.robot_stuck_flag_cons \
-                        and abs(x[3]) < config.robot_stuck_flag_cons:
+                if (
+                    abs(best_u[0]) < config.robot_stuck_flag_cons
+                    and abs(x[3]) < config.robot_stuck_flag_cons
+                ):
                     # to ensure the robot do not get stuck in
                     # best v=0 m/s (in front of an obstacle) and
                     # best omega=0 rad/s (heading to the goal with
@@ -203,8 +236,12 @@ def calc_obstacle_cost(trajectory, ob, config):
         right_check = local_ob[:, 1] <= config.robot_width / 2
         bottom_check = local_ob[:, 0] >= -config.robot_length / 2
         left_check = local_ob[:, 1] >= -config.robot_width / 2
-        if (np.logical_and(np.logical_and(upper_check, right_check),
-                           np.logical_and(bottom_check, left_check))).any():
+        if (
+            np.logical_and(
+                np.logical_and(upper_check, right_check),
+                np.logical_and(bottom_check, left_check),
+            )
+        ).any():
             return float("Inf")
     elif config.robot_type == RobotType.circle:
         if np.array(r <= config.robot_radius).any():
@@ -216,7 +253,7 @@ def calc_obstacle_cost(trajectory, ob, config):
 
 def calc_to_goal_cost(trajectory, goal):
     """
-        calc to goal cost with angle difference
+    calc to goal cost with angle difference
     """
 
     dx = goal[0] - trajectory[-1, 0]
@@ -229,46 +266,120 @@ def calc_to_goal_cost(trajectory, goal):
 
 
 def plot_arrow(x, y, yaw, length=0.5, width=0.1):  # pragma: no cover
-    plt.arrow(x, y, length * math.cos(yaw), length * math.sin(yaw),
-              head_length=width, head_width=width)
+    plt.arrow(
+        x,
+        y,
+        length * math.cos(yaw),
+        length * math.sin(yaw),
+        head_length=width,
+        head_width=width,
+    )
     plt.plot(x, y)
 
 
 def plot_robot(x, y, yaw, config):  # pragma: no cover
     if config.robot_type == RobotType.rectangle:
-        outline = np.array([[-config.robot_length / 2, config.robot_length / 2,
-                             (config.robot_length / 2), -config.robot_length / 2,
-                             -config.robot_length / 2],
-                            [config.robot_width / 2, config.robot_width / 2,
-                             - config.robot_width / 2, -config.robot_width / 2,
-                             config.robot_width / 2]])
-        Rot1 = np.array([[math.cos(yaw), math.sin(yaw)],
-                         [-math.sin(yaw), math.cos(yaw)]])
+        outline = np.array(
+            [
+                [
+                    -config.robot_length / 2,
+                    config.robot_length / 2,
+                    (config.robot_length / 2),
+                    -config.robot_length / 2,
+                    -config.robot_length / 2,
+                ],
+                [
+                    config.robot_width / 2,
+                    config.robot_width / 2,
+                    -config.robot_width / 2,
+                    -config.robot_width / 2,
+                    config.robot_width / 2,
+                ],
+            ]
+        )
+        Rot1 = np.array(
+            [[math.cos(yaw), math.sin(yaw)], [-math.sin(yaw), math.cos(yaw)]]
+        )
         outline = (outline.T.dot(Rot1)).T
         outline[0, :] += x
         outline[1, :] += y
-        plt.plot(np.array(outline[0, :]).flatten(),
-                 np.array(outline[1, :]).flatten(), "-k")
+        plt.plot(
+            np.array(outline[0, :]).flatten(), np.array(outline[1, :]).flatten(), "-k"
+        )
     elif config.robot_type == RobotType.circle:
         circle = plt.Circle((x, y), config.robot_radius, color="b")
         plt.gcf().gca().add_artist(circle)
-        out_x, out_y = (np.array([x, y]) +
-                        np.array([np.cos(yaw), np.sin(yaw)]) * config.robot_radius)
+        out_x, out_y = (
+            np.array([x, y])
+            + np.array([np.cos(yaw), np.sin(yaw)]) * config.robot_radius
+        )
         plt.plot([x, out_x], [y, out_y], "-k")
 
 
 def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
+    args = sys.argv[1:]
+    if len(args) != 1:
+        ValueError("Please provide only the path to the grid and pose files.")
+    path = args[0]
+
+    with open(os.path.join(path, "occupancy_grid.npy"), "rb") as f:
+        grid = np.load(f)
+    with open(os.path.join(path, "map_metadata.npy"), "rb") as f:
+        # resolution, width, height
+        map_metadata = np.load(f)
+    with open(os.path.join(path, "map_origin.npy"), "rb") as f:
+        # position.x, position.y, position.z, quaternion.x, quaternion.y, quaternion.z, quaternion.w
+        map_origin = np.load(f)
+    with open(os.path.join(path, "pose.npy"), "rb") as f:
+        # position.x, position.y, position.z, quaternion.x, quaternion.y, quaternion.z, quaternion.w
+        pose = np.load(f)
+
+    # Unpack
+    map_origin_x, map_origin_y, *_ = map_origin
+    map_resolution, map_width_voxels, map_height_voxels = map_metadata
+    map_resolution = round(map_resolution, 5)
+    map_width_meters = map_width_voxels * map_resolution
+    map_height_meters = map_height_voxels * map_resolution
+
+    # load way points from a file (flip and filter based on WP_D_F)
+    WP_D_F = 5
+    wx = np.loadtxt(os.path.join(path, "rx.npy"))[::WP_D_F]
+    wy = np.loadtxt(os.path.join(path, "ry.npy"))[::WP_D_F]
+
+    # Flip grid
+    grid = grid[::-1, ::]
+
+    # start position
+    sx = -pose[1]
+    sy = pose[0]
+    _, _, yaw = euler_from_quaternion(*pose[3:])
+
+    # temporary hardcode
+    sx = 0.0  # -pose[1]
+    sy = 0.2  # pose[0]
+    yaw = np.pi / 2
+
+    config.robot_type = RobotType.rectangle
+    config.robot_length = 0.4
+    config.robot_width = 0.2
+
     print(__file__ + " start!!")
     # initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
-    x = np.array([0.0, 0.0, math.pi / 8.0, 0.0, 0.0])
+    x = np.array([sx, sy, yaw, 0.0, 0.0])
     # goal position [x(m), y(m)]
-    goal = np.array([gx, gy])
+    goal = np.array([-0.8, 1.8])
 
     # input [forward speed, yaw_rate]
 
-    config.robot_type = robot_type
     trajectory = np.array(x)
-    ob = config.ob
+    # ob = config.ob
+    ob = np.argwhere(grid == 100)
+    downsample_factor = 50
+    ox, oy = (
+        list(ob[::downsample_factor, 0] * map_resolution + map_origin_x),
+        list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
+    )
+    ob = np.hstack([np.reshape(ox, (len(ox), 1)), np.reshape(oy, (len(oy), 1))])
     while True:
         u, predicted_trajectory = dwa_control(x, config, goal, ob)
         x = motion(x, u, config.dt)  # simulate robot
@@ -278,8 +389,9 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
             plt.cla()
             # for stopping simulation with the esc key.
             plt.gcf().canvas.mpl_connect(
-                'key_release_event',
-                lambda event: [exit(0) if event.key == 'escape' else None])
+                "key_release_event",
+                lambda event: [exit(0) if event.key == "escape" else None],
+            )
             plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")
             plt.plot(x[0], x[1], "xr")
             plt.plot(goal[0], goal[1], "xb")
@@ -303,6 +415,6 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
         plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(robot_type=RobotType.rectangle)
     # main(robot_type=RobotType.circle)
