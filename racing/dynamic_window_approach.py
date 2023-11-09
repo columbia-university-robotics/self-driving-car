@@ -71,8 +71,8 @@ class Config:
         self.v_resolution = 0.01  # [m/s]
         self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
         self.dt = 0.1  # [s] Time tick for motion prediction
-        self.predict_time = 3.0  # [s]
-        self.to_goal_cost_gain = 0.15
+        self.predict_time = 1.0  # [s]
+        self.to_goal_cost_gain = 0.25
         self.speed_cost_gain = 1.0
         self.obstacle_cost_gain = 1.0
         self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
@@ -80,7 +80,7 @@ class Config:
 
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
-        self.robot_radius = 1.0  # [m] for collision check
+        self.robot_radius = 0.25  # [m] for collision check
 
         # if robot_type == RobotType.rectangle
         self.robot_width = 0.5  # [m] for collision check
@@ -218,6 +218,7 @@ def calc_obstacle_cost(trajectory, ob, config):
     """
     calc obstacle cost inf: collision
     """
+    # TODO: convert the point cloud check to a occupancy grid check
     ox = ob[:, 0]
     oy = ob[:, 1]
     dx = trajectory[:, 0] - ox[:, None]
@@ -341,6 +342,8 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
     map_width_meters = map_width_voxels * map_resolution
     map_height_meters = map_height_voxels * map_resolution
 
+    # TODO: Properly load the waypoints and sample them
+
     # load way points from a file (flip and filter based on WP_D_F)
     WP_D_F = 5
     wx = np.loadtxt(os.path.join(path, "rx.npy"))[::WP_D_F]
@@ -360,21 +363,25 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
     yaw = np.pi / 2
 
     config.robot_type = RobotType.rectangle
-    config.robot_length = 0.4
-    config.robot_width = 0.2
+    config.robot_length = 0.2
+    config.robot_width = 0.1
+    config.max_speed = 2.0
+    config.max_accel = 0.5
+    config.v_resolution = 0.05
+    config.dt = 0.5
 
     print(__file__ + " start!!")
     # initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
     x = np.array([sx, sy, yaw, 0.0, 0.0])
     # goal position [x(m), y(m)]
-    goal = np.array([-0.8, 1.8])
+    goal = np.array([-0.5, 1.5])
 
     # input [forward speed, yaw_rate]
 
     trajectory = np.array(x)
     # ob = config.ob
     ob = np.argwhere(grid == 100)
-    downsample_factor = 50
+    downsample_factor = 10
     ox, oy = (
         list(ob[::downsample_factor, 0] * map_resolution + map_origin_x),
         list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
@@ -395,7 +402,7 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
             plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")
             plt.plot(x[0], x[1], "xr")
             plt.plot(goal[0], goal[1], "xb")
-            plt.plot(ob[:, 0], ob[:, 1], "ok")
+            plt.plot(ob[:, 0], ob[:, 1], "ok", markersize=2)
             plot_robot(x[0], x[1], x[2], config)
             plot_arrow(x[0], x[1], x[2])
             plt.axis("equal")
