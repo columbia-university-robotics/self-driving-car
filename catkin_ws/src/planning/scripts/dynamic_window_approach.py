@@ -1,10 +1,3 @@
-"""
-
-Mobile robot motion planning sample with Dynamic Window Approach
-
-author: Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
-
-"""
 #!/usr/bin/env python3
 
 import os
