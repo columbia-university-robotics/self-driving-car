@@ -6,7 +6,7 @@ import sys
 import math
 from enum import Enum
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 
 show_animation = False
@@ -395,7 +395,7 @@ class DWAPlanner:
             self.x = motion(self.x, u, config.dt)  # simulate robot
 
             print((self.x[3], self.x[4]))
-            self.speed_topic.publish(self.x[3])
+            self.speed_topic.publish(self.x[3] * 200)
             self.steer_angle_topic.publish(self.x[4])
 
             self.trajectory = np.vstack(
@@ -417,10 +417,7 @@ class DWAPlanner:
 
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    if len(args) != 1:
-        ValueError("Please provide only the path to the grid and pose files.")
-    path = args[0]
+    path = "/waypoints_dir_dwa"
 
     with open(os.path.join(path, "occupancy_grid.npy"), "rb") as f:
         grid = np.load(f)
