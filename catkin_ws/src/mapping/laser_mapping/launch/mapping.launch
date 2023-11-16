@@ -1,9 +1,9 @@
 <launch>
     <node pkg="tf" type="static_transform_publisher" name="tf_base_link_to_odom" output="screen" args="0 0 0 0 0 0 1 base_link odom 10" />
     <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
-        <param name="map_resolution" value="0.02" />
+        <param name="map_resolution" value="0.025" />
         <param name="laser_dist_min" value="0.05" />
-        <param name="map_update_distance_thresh" value="0.05" />
-        <param name="map_update_angle_thresh" value="0.05" />
+        <param name="map_update_distance_thresh" value="0.08" />
+        <param name="map_update_angle_thresh" value="0.2" />
     </node>
 </launch>
