@@ -172,7 +172,7 @@ def predict_trajectory(x_init, v, y, config):
     return trajectory
 
 
-def calc_control_and_trajectory(x, dw, config, goal, ob):
+def calc_control_and_trajectory(x, dw, config, goal, og):
     """
     calculation final input with dynamic window
     """
@@ -191,8 +191,8 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
                 trajectory, goal
             )
             speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
-            ob_cost = config.obstacle_cost_gain * calc_obstacle_cost(
-                trajectory, ob, config
+            ob_cost = config.obstacle_cost_gain * calc_obstacle_cost_og(
+                trajectory, og, config
             )
 
             final_cost = to_goal_cost + speed_cost + ob_cost
@@ -250,6 +250,38 @@ def calc_obstacle_cost(trajectory, ob, config):
 
     min_r = np.min(r)
     return 1.0 / min_r  # OK
+
+
+def calc_obstacle_cost_og(trajectory, og, config):
+    """
+    calc obstacle cost inf: collision
+    """
+    # Unpack occupancy grid
+    og, (og_resolution, _, _), (og_origin_x, og_origin_y, *_) = og
+    og_resolution = round(og_resolution, 5)
+
+    # Define radius to check for collision
+    # (check this many cells in each direction)
+    r = int((max(config.robot_length, config.robot_width) / 1.5) / og_resolution)
+
+    # Check for collisions
+    for ix, iy in zip(trajectory[:, 0], trajectory[:, 1]):
+        x = int((ix - og_origin_x) / og_resolution)
+        y = int((iy - og_origin_y) / og_resolution)
+
+        collision = any(
+            [
+                og[x + xf, y + yf]
+                for xf in range(-r - 1, r + 2)
+                for yf in range(-r - 1, r + 2)
+            ]
+        )
+
+        # If there is any collision, trajectory is strapped
+        if collision:
+            return float("Inf")
+
+    return 0  # OK
 
 
 def calc_to_goal_cost(trajectory, goal):
@@ -317,6 +349,23 @@ def plot_robot(x, y, yaw, config):  # pragma: no cover
         plt.plot([x, out_x], [y, out_y], "-k")
 
 
+def rotate_waypoints(x, y, wx, wy):
+    # Find closest waypoint
+    idx = 0
+    min_diff = np.inf
+    for i, (_wx, _wy) in enumerate(zip(wx, wy)):
+        diff = np.hypot(_wx - x, _wy - y)
+        if diff < min_diff:
+            idx = i
+            min_diff = diff
+
+    # Move through waypoints
+    wx = np.concatenate((wx[idx:], wx[:idx]), axis=0)
+    wy = np.concatenate((wy[idx:], wy[:idx]), axis=0)
+
+    return wx, wy
+
+
 def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
     args = sys.argv[1:]
     if len(args) != 1:
@@ -345,9 +394,9 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
     # TODO: Properly load the waypoints and sample them
 
     # load way points from a file (flip and filter based on WP_D_F)
-    WP_D_F = 5
-    wx = np.loadtxt(os.path.join(path, "rx.npy"))[::WP_D_F]
-    wy = np.loadtxt(os.path.join(path, "ry.npy"))[::WP_D_F]
+    WP_D_F = 18
+    wx = np.loadtxt(os.path.join(path, "rx.npy"))[::-WP_D_F]
+    wy = np.loadtxt(os.path.join(path, "ry.npy"))[::-WP_D_F]
 
     # Flip grid
     grid = grid[::-1, ::]
@@ -358,10 +407,11 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
     _, _, yaw = euler_from_quaternion(*pose[3:])
 
     # temporary hardcode
-    sx = 0.0  # -pose[1]
-    sy = 0.2  # pose[0]
-    yaw = np.pi / 2
+    sx = wx[-1]
+    sy = wy[-1]
+    yaw = 0
 
+    # Set config for our robot
     config.robot_type = RobotType.rectangle
     config.robot_length = 0.2
     config.robot_width = 0.1
@@ -373,22 +423,26 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
     print(__file__ + " start!!")
     # initial state [x(m), y(m), yaw(rad), v(m/s), omega(rad/s)]
     x = np.array([sx, sy, yaw, 0.0, 0.0])
-    # goal position [x(m), y(m)]
-    goal = np.array([-0.5, 1.5])
 
+    wx, wy = rotate_waypoints(sx, sy, wx, wy)
+
+    # goal position [x(m), y(m)]
+    goal = np.array([wx[0], wy[0]])
     # input [forward speed, yaw_rate]
 
     trajectory = np.array(x)
     # ob = config.ob
     ob = np.argwhere(grid == 100)
-    downsample_factor = 10
+    downsample_factor = 1
     ox, oy = (
         list(ob[::downsample_factor, 0] * map_resolution + map_origin_x),
         list(ob[::downsample_factor, 1] * map_resolution + map_origin_y),
     )
     ob = np.hstack([np.reshape(ox, (len(ox), 1)), np.reshape(oy, (len(oy), 1))])
     while True:
-        u, predicted_trajectory = dwa_control(x, config, goal, ob)
+        u, predicted_trajectory = dwa_control(
+            x, config, goal, (grid, map_metadata, map_origin)
+        )
         x = motion(x, u, config.dt)  # simulate robot
         trajectory = np.vstack((trajectory, x))  # store state history
 
@@ -401,19 +455,25 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
             )
             plt.plot(predicted_trajectory[:, 0], predicted_trajectory[:, 1], "-g")
             plt.plot(x[0], x[1], "xr")
-            plt.plot(goal[0], goal[1], "xb")
+            # plt.plot(goal[0], goal[1], "xb")
+            plt.plot(wx, wy, "xb")
             plt.plot(ob[:, 0], ob[:, 1], "ok", markersize=2)
             plot_robot(x[0], x[1], x[2], config)
             plot_arrow(x[0], x[1], x[2])
             plt.axis("equal")
             plt.grid(True)
-            plt.pause(0.0001)
+            plt.pause(0.001)
 
         # check reaching goal
         dist_to_goal = math.hypot(x[0] - goal[0], x[1] - goal[1])
         if dist_to_goal <= config.robot_radius:
-            print("Goal!!")
-            break
+            # Move through waypoints
+            wx = np.concatenate((wx[1:], wx[:1]), axis=0)
+            wy = np.concatenate((wy[1:], wy[:1]), axis=0)
+
+            # Set new goal
+            goal = np.array([wx[0], wy[0]])
+            print(f"Reached waypoint, next goal is {goal}")
 
     print("Done")
     if show_animation:
@@ -424,4 +484,3 @@ def main(gx=10.0, gy=10.0, robot_type=RobotType.circle):
 
 if __name__ == "__main__":
     main(robot_type=RobotType.rectangle)
-    # main(robot_type=RobotType.circle)
