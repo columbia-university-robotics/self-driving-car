@@ -1,0 +1,3 @@
+<launch>
+    <node name="dwa_planner" pkg="planning" type="dynamic_window_approach.py" />
+</launch>
